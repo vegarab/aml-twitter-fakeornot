@@ -5,7 +5,7 @@ from tfn.feature_extraction.tf_idf import get_tfidf_model
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-class CosineSimularity(Model):
+class CosineSimilarity(Model):
     def fit(self, X, y):
         self.x0, self.y0, self.x1, self.y1 = split_binary_classes(X, y)
 
@@ -29,11 +29,11 @@ if __name__ == '__main__':
 
     data = Dataset('twitter')
 
-    cosine = CosineSimularity()
+    cosine = CosineSimilarity()
     cosine.fit(data.X, data.y)
 
     y_pred = cosine.predict(data.X)
 
-    print('TF-IDF + cosine-simularity accuracy:', accuracy_score(data.y, y_pred))
+    print('TF-IDF + cosine-similarity accuracy:', accuracy_score(data.y, y_pred))
 
 
