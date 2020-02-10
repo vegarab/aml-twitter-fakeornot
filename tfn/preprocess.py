@@ -22,6 +22,25 @@ START_SPEC_CHARS = re.compile('^[{}]+'.format(re.escape(string.punctuation)))
 END_SPEC_CHARS = re.compile('[{}]+$'.format(re.escape(string.punctuation)))
 
 
+# TODO: This function can probably be waaaay neater than this mess
+def split_binary_classes(X, y):
+    ''' Split the dataset into groups of the two classes '''
+    x0 = []
+    x1 = []
+    y0 = []
+    y1 = []
+
+    for i,x in enumerate(X):
+        if y[i] == 0:
+            x0.append(x)
+            y0.append(y[i])
+        else:
+            x1.append(x)
+            y1.append(y[i])
+
+
+    return x0, y0, x1, y1
+
 def _get_stop_words(strip_handles, strip_rt):
     ''' Returns stopwords '''
     stop_words = (stopwords.words('english'))
