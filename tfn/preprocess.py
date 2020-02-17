@@ -10,6 +10,8 @@ import spacy
 from nltk.tokenize import TweetTokenizer
 from nltk.corpus import stopwords
 
+from sklearn.model_selection import train_test_split
+
 from spacy.lemmatizer import Lemmatizer
 
 
@@ -57,7 +59,8 @@ def _has_digits(token):
 class Dataset():
     def __init__(self, tokenizer, strip_handles=True, 
                                   strip_rt=True, 
-                                  strip_digits=True):
+                                  strip_digits=True,
+                 test_size=0.3):
         # Get raw data
         self.corpus, self.y = self._get_training_data_from_csv()
         self.y = self.y.tolist()
@@ -76,7 +79,8 @@ class Dataset():
             raise AttributeError("This functions only accepts 'twitter' and "
                                + "'lemmatize' as possible tokenizers")
 
-        
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=test_size)
+
     def _get_training_data_from_csv(self):
         df = pandas.read_csv(_TRAIN_DATA_PATH, header=0)
         X = df['text'].to_numpy()

@@ -26,13 +26,11 @@ if __name__ == '__main__':
 
     data = Dataset('twitter')
 
-    X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
-
     knn = KNN()
-    knn.fit(X_train, y_train)
+    knn.fit(data.X_train, data.y_train)
 
-    y_pred = knn.predict(X_test)
+    y_pred = knn.predict(data.X_test)
 
-    print('TF-IDF + kNN accuracy:', round(accuracy_score(y_test, y_pred), 4))
-    print('TF-IDF + kNN AUC:', round(roc_auc_score(y_test, y_pred), 4))
+    print('TF-IDF + kNN accuracy:', round(accuracy_score(data.y_test, y_pred), 4))
+    print('TF-IDF + kNN AUC:', round(roc_auc_score(data.y_test, y_pred), 4))
 

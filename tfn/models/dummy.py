@@ -22,12 +22,10 @@ if __name__ == '__main__':
 
     data = Dataset('twitter')
 
-    X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
-
     dummy = Dummy()
-    dummy.fit(X_train, y_train)
+    dummy.fit(data.X_train, data.y_train)
 
-    y_pred = dummy.predict(X_test)
+    y_pred = dummy.predict(data.X_test)
 
-    print('Dummy accuracy:', round(accuracy_score(y_test, y_pred), 4))
-    print('Dummy AUC:', round(roc_auc_score(y_test, y_pred), 4))
+    print('Dummy accuracy:', round(accuracy_score(data.y_test, y_pred), 4))
+    print('Dummy AUC:', round(roc_auc_score(data.y_test, y_pred), 4))
