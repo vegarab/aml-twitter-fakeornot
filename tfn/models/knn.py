@@ -1,5 +1,4 @@
 from tfn.models.model import Model
-from tfn.preprocess import split_binary_classes
 from tfn.feature_extraction.tf_idf import get_tfidf_model
 
 from sklearn.neighbors import KNeighborsClassifier
@@ -8,10 +7,10 @@ from sklearn.neighbors import KNeighborsClassifier
 
 class KNN(Model):
     def fit(self, X, y):
-        self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
+        self.vectorizer, self.X_vectorized, _ = get_tfidf_model(X)
 
         self.clf = KNeighborsClassifier()
-        self.clf.fit(self.corpus_matrix, y)
+        self.clf.fit(self.X_vectorized, y)
 
     def predict(self, X):
         X_emb = self.vectorizer.transform(X)
@@ -22,7 +21,6 @@ class KNN(Model):
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
     from sklearn.metrics import accuracy_score, roc_auc_score
-    from sklearn.model_selection import train_test_split
 
     data = Dataset('twitter')
 
