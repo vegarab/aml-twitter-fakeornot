@@ -25,15 +25,15 @@ class CosineSimilarity(Model):
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
-    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import accuracy_score, roc_auc_score
 
     data = Dataset('twitter')
 
     cosine = CosineSimilarity()
-    cosine.fit(data.X, data.y)
+    cosine.fit(data.X_train, data.y_train)
 
-    y_pred = cosine.predict(data.X)
+    y_pred = cosine.predict(data.X_test)
 
-    print('TF-IDF + cosine-similarity accuracy:', accuracy_score(data.y, y_pred))
-
+    print('TF-IDF + cosine-sim accuracy:', round(accuracy_score(data.y_test, y_pred), 4))
+    print('TF-IDF + cosine-sim AUC:', round(roc_auc_score(data.y_test, y_pred), 4))
 
