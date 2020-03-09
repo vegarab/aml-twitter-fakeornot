@@ -86,6 +86,7 @@ class Dataset():
     def __init__(self, tokenizer, strip_handles=True, 
                                   strip_rt=True, 
                                   strip_digits=True,
+                                  strip_hashtags=False,
                  test_size=0.3):
         # Get raw data
         self.corpus, self.y = self._get_training_data_from_csv()
@@ -95,7 +96,8 @@ class Dataset():
             self.X = self._tokenize(self.corpus, 
                                     strip_handles, 
                                     strip_rt, 
-                                    strip_digits)
+                                    strip_digits,
+                                    strip_hashtags)
         elif tokenizer == 'lemmatize':
             self.X = self._tokenize_with_lemma(self.corpus, 
                                                strip_handles, 
