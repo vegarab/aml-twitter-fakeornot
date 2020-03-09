@@ -21,6 +21,8 @@ Output dataframe contains columns:
     "title", "status_code", "error_log"
 '''
 
+OUTPUT_PATH = 'tfn/data/url.csv'
+
 def _get_twitter_urls(text):
     # Returns URLs in the tweet text
     pattern = 'https?://t.co/.{10}'
