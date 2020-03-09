@@ -7,6 +7,8 @@ import pandas
 import numpy
 import spacy
 
+from spellchecker import SpellChecker
+
 from nltk.tokenize import TweetTokenizer
 from nltk.corpus import stopwords
 
@@ -22,6 +24,30 @@ lemmatize = en.Defaults.create_lemmatizer()
 
 START_SPEC_CHARS = re.compile('^[{}]+'.format(re.escape(string.punctuation)))
 END_SPEC_CHARS = re.compile('[{}]+$'.format(re.escape(string.punctuation)))
+
+
+spell = SpellChecker(distance=1)
+def check_spelling(tokens, keep_wrong=False):
+    if keep_wrong:
+        length_original = len(tokens)
+        tokens += [
+            spell.correction(token) for token in tokens
+            if not spell.correction(token) in [
+                token for token in tokens
+            ]
+        ]
+        return tokens, len(tokens) - length_original
+
+    elif not keep_wrong:
+        corrections = [
+            (token, spell.correction(token)) for token in tokens
+            if not token == spell.correction(token)
+        ]
+        for correction in corrections:
+            tokens.remove(correction[0])
+            tokens.append(correction[1])
+
+        return tokens, len(corrections)
 
 
 # TODO: This function can probably be waaaay neater than this mess
@@ -60,6 +86,7 @@ class Dataset():
     def __init__(self, tokenizer, strip_handles=True, 
                                   strip_rt=True, 
                                   strip_digits=True,
+                                  strip_hashtags=False,
                  test_size=0.3):
         # Get raw data
         self.corpus, self.y = self._get_training_data_from_csv()
@@ -69,7 +96,8 @@ class Dataset():
             self.X = self._tokenize(self.corpus, 
                                     strip_handles, 
                                     strip_rt, 
-                                    strip_digits)
+                                    strip_digits,
+                                    strip_hashtags)
         elif tokenizer == 'lemmatize':
             self.X = self._tokenize_with_lemma(self.corpus, 
                                                strip_handles, 
@@ -122,7 +150,8 @@ class Dataset():
 
         return output
 
-    def _tokenize(self, corpus, strip_handles=True, strip_rt=True, strip_digits=True):
+    def _tokenize(self, corpus, strip_handles=True, strip_rt=True, 
+                  strip_digits=True, strip_hashtags=False):
         ''' Tokenize corpus using NLTK's TwitterTokenizer '''
 
         tokenizer = TweetTokenizer(strip_handles=strip_handles, reduce_len=True)
@@ -141,7 +170,8 @@ class Dataset():
             tokens = [token for token in tokens if bool(token.strip())]
 
             # Remove punctuation from start of tokens.
-            tokens = [re.sub(START_SPEC_CHARS, '', token) for token in tokens]
+            if strip_hashtags:
+                tokens = [re.sub(START_SPEC_CHARS, '', token) for token in tokens]
 
             # Remove punctuation from end of tokens.
             tokens = [re.sub(END_SPEC_CHARS, '', token) for token in tokens]

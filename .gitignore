@@ -131,4 +131,7 @@ dmypy.json
 # Jetbrains setup files
 .idea/
 
+# Vscode settings
+.vscode/
+
 *.html
