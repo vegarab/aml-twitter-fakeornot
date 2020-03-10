@@ -16,8 +16,10 @@ from sklearn.model_selection import train_test_split
 
 from spacy.lemmatizer import Lemmatizer
 
+from tfn import TRAIN_FILE
 
-_TRAIN_DATA_PATH = 'tfn/data/train.csv'
+
+_TRAIN_DATA_PATH = TRAIN_FILE
 
 en = spacy.load('en_core_web_sm')
 lemmatize = en.Defaults.create_lemmatizer()
