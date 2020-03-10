@@ -135,3 +135,8 @@ dmypy.json
 .vscode/
 
 *.html
+
+# Latex
+*.aux
+*.log
+*.synctex.gz
