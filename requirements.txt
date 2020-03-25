@@ -5,3 +5,4 @@ nltk
 pandas==0.25.3
 textblob
 vaderSentiment
+gensim
