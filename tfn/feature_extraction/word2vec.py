@@ -8,7 +8,6 @@ from gensim.models.fasttext import FastText as FT_gensim
 from gensim.test.utils import datapath
 
 from tfn.preprocess import Dataset
-trainX , y= Dataset('twitter')._get_training_data_from_csv()
 
 '''
 from gensim.test.utils import common_texts
@@ -100,19 +99,22 @@ def get_word(gram=1,target=1,length =100):
     return newlist
 
 
-vocab1_diaster=get_word(gram =1,target =1,length =500)
-vocab1_nondiaster=get_word(gram =1,target =0,length =50)
-vocab2_diaster=get_word(gram =2,target =1,length =50)
-vocab2_nondiaster=get_word(gram =2,target =0,length =50)
-vocab3_diaster=get_word(gram =3,target =1,length =50)
-vocab3_nondiaster=get_word(gram =3,target =0,length =50)
+if __name__ == '__main__':
+    trainX , y = Dataset('twitter')._get_training_data_from_csv()
+
+    vocab1_diaster=get_word(gram =1,target =1,length =500)
+    vocab1_nondiaster=get_word(gram =1,target =0,length =50)
+    vocab2_diaster=get_word(gram =2,target =1,length =50)
+    vocab2_nondiaster=get_word(gram =2,target =0,length =50)
+    vocab3_diaster=get_word(gram =3,target =1,length =50)
+    vocab3_nondiaster=get_word(gram =3,target =0,length =50)
 
 
-word2vecmod=word2vec_model(corpus=trainX,update =False)
+    word2vecmod=word2vec_model(corpus=trainX,update =False)
 
-tsne_plot(word2vecmod,vocab1_diaster,"UniGram diaster word embedding")
-tsne_plot(word2vecmod,vocab1_nondiaster,"UniGram nondiaster word embedding")
-tsne_plot(word2vecmod,vocab2_diaster,"BiGram diaster word embedding")
-tsne_plot(word2vecmod,vocab2_nondiaster,"BiGram nondiaster word embedding")
-tsne_plot(word2vecmod,vocab3_diaster,"TriGram diaster word embedding")
-tsne_plot(word2vecmod,vocab3_nondiaster,"TriGram nondiaster word embedding")
+    tsne_plot(word2vecmod,vocab1_diaster,"UniGram diaster word embedding")
+    tsne_plot(word2vecmod,vocab1_nondiaster,"UniGram nondiaster word embedding")
+    tsne_plot(word2vecmod,vocab2_diaster,"BiGram diaster word embedding")
+    tsne_plot(word2vecmod,vocab2_nondiaster,"BiGram nondiaster word embedding")
+    tsne_plot(word2vecmod,vocab3_diaster,"TriGram diaster word embedding")
+    tsne_plot(word2vecmod,vocab3_nondiaster,"TriGram nondiaster word embedding")
