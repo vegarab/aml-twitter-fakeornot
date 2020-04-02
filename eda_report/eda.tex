@@ -269,7 +269,16 @@ Punctuation ...
   \label{fig:punctuation}
 \end{figure}
 
-POS-tags    ...
+Figure \ref{fig:part_of_speech} illustrates some of the different linguistic
+feautres of the two classes by showing the distribution and difference in
+part-of-speech tags per tweet. Notably, the disaster tweets more often use
+numbers and proper nouns. One explaination of this difference would be the
+larger amount of references to statistics (numbers) and official bodies and
+names (proper nouns) in real disaster coverage. However, the difference is very
+minimal for all POS-tags, so this could simply be an arbitrary difference due
+to noise. The \texttt{en\_core\_web\_sm} POS-tagger in \texttt{spacy} was used for
+tagging.
+
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=\linewidth]{../figures/part_of_speech.png}
@@ -277,7 +286,15 @@ POS-tags    ...
   \label{fig:part_of_speech}
 \end{figure}
 
-Spelling mistakes ...
+Using a Hamilton distance of 1 between two tokens and the WordFrequency
+project\footnote{https://github.com/hermitdave/FrequencyWords} dictionary to
+correct spelling, we evaluate the number of spelling mistakes per tweet, per
+class. Figure \ref{fig:spelling_mistakes} shows the number of spelling
+mistakes for both classes. We observe that except for tweets with a single
+spelling mistake, disaster tweets contain more mistakes than non-disaster
+tweets. These differences are very small and lay within the margin of error to
+be expected from approach to detecting spelling mistakes used. 
+
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=0.9\linewidth]{../figures/spelling_mistakes.png}
