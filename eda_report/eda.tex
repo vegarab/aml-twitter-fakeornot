@@ -291,7 +291,7 @@ the real disaster tweets are referring to large mainstream news sources. News
 is supposed to be objective and carry little to no sentiment. Using VADER
 Sentiment Analysis\footnote{\url{https://github.com/cjhutto/vaderSentiment}}, a
 rule-based sentiment analysis tool that is specifically made for social media
-text, we investigate the correlation between sentiment and subjectivity and
+text, we investigate the correlation between sentiment and subjectivity, and
 classes. Figure \ref{fig:sent_sub_dist} shows a distribution and density of
 sentiment and subjectivity scores. Note that the two classes are laid on top of
 each other in both figures. A negative sentiment value naturally corresponds to
@@ -312,6 +312,26 @@ tweets are negative more often. Non-disaster tweets are also slightly skewed
 towards being more subjective than real disaster tweets. These observations all
 follow the intuition of disaster tweets being either mostly neutral and
 objective (reported news) or carry a negative sentiment. 
+
+\begin{table}[hbt!]
+  \begin{center}
+   \begin{tabular}{c|c|c|c|c} 
+   \hline
+    \textbf{Class} & \textbf{Negative} & \textbf{Neutral} & \textbf{Positive} & \textbf{Subjective}\\
+    Non-Disaster & 0.132 & 0.766 & 0.102 & 0.324\\
+    Disaster & 0.173 & 0.777 & 0.049 & 0.265\\
+   \hline
+  \end{tabular}
+  \end{center}
+  \caption{Mean values of negative, neutral and positive sentiment as well as
+  mean subjectivity of tweets for each class.}
+  \label{tab:sentiment}
+\end{table}
+
+Table \ref{tab:sentiment} shows the mean values of sentiment and
+subjectivity for the two classes. These values further quantifies the
+differences. Disaster tweets are 20\% more objective, 71\% less positive
+and 27\% more negative than non-disaster tweets. 
 
 \section{Feature Exploration}
 % TF-IDF + cosine, D-tree vis, PCA, n-grams. Non-ML modeling,
