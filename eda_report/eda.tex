@@ -164,10 +164,8 @@ latent space representations such as word embeddings like
 the existing features in the data and basis for choosing a semantic
 representation model, we explore both token- and character-level relationships
 between the data and the two classes.
-% define problem, feature extraction in nlp, general data cleaning
 
 \section{Data Summarization}
-% size, missing values, ratio of classes, + add keywords and location
 The data set contains $7,613$ tweets, labelled as fake and real. Excluding the
 label, the data has three main attributes: \textit{keyword, location, text}.
 The keyword attribute contains a list of pre-defined keywords that describes
@@ -208,8 +206,6 @@ modeling.
 \end{figure}
 
 \section{Quantitative Statistics}
-% # tokens, word frequencies, emojis, # words/tweet, URLs, POS, punctuation,
-% spellcorrections
 Exploring the textual data in the corpus reveals some correlations between the
 various syntactic and semantic features, and the two classes. Figure
 \ref{fig:num_words} shows that there is a small shift in the mean of the
@@ -351,11 +347,11 @@ differences. Disaster tweets are 20\% more objective, 71\% less positive
 and 27\% more negative than non-disaster tweets. 
 
 \section{Feature Exploration}
-% TF-IDF + cosine, D-tree vis, PCA, n-grams. Non-ML modeling,
+% TF-IDF + cosine, D-tree vis, PCA, n-grams, Non-ML modeling.
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=\linewidth]{../figures/decision_tree.png}
-  \caption{First few nodes of a decision tree achieving an F1 score of 0.76}
+  \caption{First few nodes of a decision tree achieving an F1 score of 0.76.}
   \label{fig:decision_tree}
 \end{figure}
 
@@ -364,6 +360,13 @@ and 27\% more negative than non-disaster tweets.
   \includegraphics[width=\linewidth]{../figures/pca.png}
   \caption{2 dimensional PCA using a TF-IDF corpus matrix.}
   \label{fig:pca}
+\end{figure}
+
+\begin{figure}[hbt!]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/ngrams.png}
+  \caption{Top 10 Bigrams.}
+  \label{fig:ngram}
 \end{figure}
 
 \section{Conclusion}
