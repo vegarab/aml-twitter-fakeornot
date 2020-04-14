@@ -257,7 +257,15 @@ blogs.
   \label{fig:domain_freq}
 \end{figure}
 
-Punctuation ...
+When considering the use of punctuation in the tweet texts we observe a few
+differences between the two classes. Symbols such as \texttt{\{} and \texttt{$>$}
+appear exclusively in the non-disaster tweets, although at a very low
+frequency. Other symbols such as \texttt{=, /\, and `} also vary largely
+between the two classes. By manual inspection of the tweets that account for
+these differences there are no obvious reason for the large difference. Since
+the highest varying punctuation symbols also are the least used symbols, we
+assume that the large variation is simply due to the sampling bias of such a
+low frequency of their use. 
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=\linewidth]{../figures/punctuation.png}
@@ -266,9 +274,9 @@ Punctuation ...
 \end{figure}
 
 Figure \ref{fig:part_of_speech} illustrates some of the different linguistic
-feautres of the two classes by showing the distribution and difference in
+features of the two classes by showing the distribution and difference in
 part-of-speech tags per tweet. Notably, the disaster tweets more often use
-numbers and proper nouns. One explaination of this difference would be the
+numbers and proper nouns. One explanation of this difference would be the
 larger amount of references to statistics (numbers) and official bodies and
 names (proper nouns) in real disaster coverage. However, the difference is very
 minimal for all POS-tags, so this could simply be an arbitrary difference due
@@ -289,7 +297,7 @@ class. Figure \ref{fig:spelling_mistakes} shows the number of spelling
 mistakes for both classes. We observe that except for tweets with a single
 spelling mistake, disaster tweets contain more mistakes than non-disaster
 tweets. These differences are very small and lay within the margin of error to
-be expected from approach to detecting spelling mistakes used. 
+be expected from this approach to detecting spelling mistakes.
 
 \begin{figure}[hbt!]
   \centering
@@ -330,7 +338,8 @@ objective (reported news) or carry a negative sentiment.
   \begin{center}
    \begin{tabular}{c|c|c|c|c} 
    \hline
-    \textbf{Class} & \textbf{Negative} & \textbf{Neutral} & \textbf{Positive} & \textbf{Subjective}\\
+    \textbf{Class} & \textbf{Negative} & 
+      \textbf{Neutral} & \textbf{Positive} & \textbf{Subjective}\\
     Non-Disaster & 0.132 & 0.766 & 0.102 & 0.324\\
     Disaster & 0.173 & 0.777 & 0.049 & 0.265\\
    \hline
@@ -348,6 +357,17 @@ and 27\% more negative than non-disaster tweets.
 
 \section{Feature Exploration}
 % TF-IDF + cosine, D-tree vis, PCA, n-grams, Non-ML modeling.
+To explore some of the most prominent textual and semantic features in the
+dataset, we consider a few models that are suitable for extracting said
+features. Figure \ref{fig:decision_tree} shows the first few nodes in a
+decision tree trained based on word frequency. The tree classifies the tweets
+with an F1-score of $0.76$. Notably, from the top of the tree we observe that
+words such as \textit{suicide, California, killed, ISIS, bomb} and
+\textit{west} are immediately recognised as features contributing to a good
+split. These are also tokens that one would consider as substantial in
+differentiation between a disaster and non-disaster tweet. This shows that the
+data contains useful features for class separation.
+
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=\linewidth]{../figures/decision_tree.png}
@@ -355,12 +375,34 @@ and 27\% more negative than non-disaster tweets.
   \label{fig:decision_tree}
 \end{figure}
 
+However, the vocabulary size of the textual data is over 7000 unique words.
+Data with such a high dimensionality can causes some problems when attempting
+to extract useful features. Using PCA, we attempt to reduce the dimensionality
+(substantially) and visualise the results to see if there are any evident
+patterns, even at 2- and 3D. Figure \ref{fig:pca} shows a 2D PCA projection
+of the textual data. Other than the slightly higher variation in the
+non-disaster data, including a few outliers, there are no evident patterns that
+helps separate the two classes. The same results are evident in the 3D
+projection of the data. 
+
 \begin{figure}[hbt!]
   \centering
   \includegraphics[width=\linewidth]{../figures/pca.png}
   \caption{2 dimensional PCA using a TF-IDF corpus matrix.}
   \label{fig:pca}
 \end{figure}
+
+From a probabilistic view, we can build a basic language model using the n-gram
+model, specifically a 2-gram (bigram) model. Using this Markov chain model we
+can investigate the most frequent bigrams from two models built on each data
+class. Figure \ref{fig:ngram} shows the top 10 bigrams for both classes, which
+illustrates some expected differences. Although the two classes share some
+frequent bigrams such as \textit{burning building(s)}, the disaster model
+mostly contains bigrams that are clearly related to disasters. While the
+non-disaster language model contains what can be seen as more arbitrary bigrams
+of words. The disaster tweets also have a clearer variation in the frequency of
+its top 10 bigrams, where a few specific disasters are overrepresented, such as
+the Malaysian airlines disaster.
 
 \begin{figure}[hbt!]
   \centering
@@ -370,6 +412,26 @@ and 27\% more negative than non-disaster tweets.
 \end{figure}
 
 \section{Conclusion}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget erat mi.
+Nam non diam felis. Ut tincidunt, mauris eget ornare sodales, orci ligula
+bibendum dui, id tristique augue arcu eu dolor. Vestibulum tortor justo,
+malesuada at ligula eget, cursus laoreet diam. Orci varius natoque penatibus et
+magnis dis parturient montes, nascetur ridiculus mus. Ut non volutpat metus, id
+luctus nunc. Duis nisi nunc, ullamcorper at enim at, maximus luctus sem.
+Quisque ipsum risus, tempor nec sem vitae, placerat placerat tellus. Nunc
+congue, diam facilisis eleifend elementum, sapien sem viverra risus, lobortis
+tincidunt libero leo quis est. Sed porta tellus a egestas fermentum.
+Suspendisse eget tristique libero, sit amet maximus ligula. Suspendisse in
+tellus sagittis, ultrices ante quis, tristique lectus. Quisque fringilla, leo
+sagittis iaculis finibus, nunc nulla elementum neque, quis commodo justo libero
+a nunc. Integer convallis sapien eu laoreet congue.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget erat mi.
+Nam non diam felis. Ut tincidunt, mauris eget ornare sodales, orci ligula
+bibendum dui, id tristique augue arcu eu dolor. Vestibulum tortor justo,
+malesuada at ligula eget, cursus laoreet diam. Orci varius natoque penatibus et
+magnis dis parturient montes, nascetur ridiculus mus. Ut non volutpat metus, id
+luctus nunc. Duis nisi nunc, ullamcorper at enim at, maximus luctus sem.
 
 % Can use something like this to put references on a page
 % by themselves when using endfloat and the captionsoff option.
