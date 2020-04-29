@@ -92,6 +92,7 @@
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
+\usepackage{etoolbox}
 \begin{document}
 \title{Real or Not? NLP with Disaster Tweets EDA}
 
@@ -105,34 +106,30 @@
 \author{Vegar~Andreas~Bergum,~\IEEEmembership{vab1g19,}
         Chan'g'Kai~Fu,~\IEEEmembership{ckf1n19,}
         Adam~Ghoumrassi,~\IEEEmembership{ag3u19,}
-        PingChun~Tsai,~\IEEEmembership{pct1g19.}% <-this % stops a space
- }
-% \author{....lastname \thanks{...} \thanks{...} }
-%                     ^------------^------------^----Do not want these spaces!
+        PingChun~Tsai,~\IEEEmembership{pct1g19.}}
+\markboth{COMP6208 Advanced Machine Learning}{}
 
-% The paper headers
-\markboth{COMP6208 Advanced Machine Learning}
-{}
-% The only time the second header will appear is for the odd numbered pages
-% after the title page when using the twoside option.
-% you desire.
+% Reduces spacing between authors and text
+\makeatletter
+\patchcmd{\@maketitle}
+  {\addvspace{0.5\baselineskip}\egroup}
+  {\addvspace{-1.2\baselineskip}\egroup}
+  {}
+  {}
+\makeatother
 
 \maketitle
 
 \begin{abstract}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget erat mi.
-Nam non diam felis. Ut tincidunt, mauris eget ornare sodales, orci ligula
-bibendum dui, id tristique augue arcu eu dolor. Vestibulum tortor justo,
-malesuada at ligula eget, cursus laoreet diam. Orci varius natoque penatibus et
-magnis dis parturient montes, nascetur ridiculus mus. Ut non volutpat metus, id
-luctus nunc. Duis nisi nunc, ullamcorper at enim at, maximus luctus sem.
-Quisque ipsum risus, tempor nec sem vitae, placerat placerat tellus. Nunc
-congue, diam facilisis eleifend elementum, sapien sem viverra risus, lobortis
-tincidunt libero leo quis est. Sed porta tellus a egestas fermentum.
-Suspendisse eget tristique libero, sit amet maximus ligula. Suspendisse in
-tellus sagittis, ultrices ante quis, tristique lectus. Quisque fringilla, leo
-sagittis iaculis finibus, nunc nulla elementum neque, quis commodo justo libero
-a nunc. Integer convallis sapien eu laoreet congue.
+This exploratory data analysis of the \textit{Real or Not? NLP with
+Disaster Tweets} Kaggle competition dataset looks at possible underlying
+patterns in the textual data contained in tweets. The analysis includes
+syntactical features such as punctuation, spelling mistakes and word
+frequencies, and semantic features such as sentiment, emojis and bigrams.
+Further, we look at the top splits in a decision tree and perform latent
+semantic analysis in an attempt to uncover lower-dimensional patterns. The
+analysis reveals some underlying differences between the classes and
+demonstrates how machine learning can be used on this classification problem.
 \end{abstract}%
 
 \IEEEpeerreviewmaketitle
@@ -412,26 +409,31 @@ the Malaysian airlines disaster.
 \end{figure}
 
 \section{Conclusion}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget erat mi.
-Nam non diam felis. Ut tincidunt, mauris eget ornare sodales, orci ligula
-bibendum dui, id tristique augue arcu eu dolor. Vestibulum tortor justo,
-malesuada at ligula eget, cursus laoreet diam. Orci varius natoque penatibus et
-magnis dis parturient montes, nascetur ridiculus mus. Ut non volutpat metus, id
-luctus nunc. Duis nisi nunc, ullamcorper at enim at, maximus luctus sem.
-Quisque ipsum risus, tempor nec sem vitae, placerat placerat tellus. Nunc
-congue, diam facilisis eleifend elementum, sapien sem viverra risus, lobortis
-tincidunt libero leo quis est. Sed porta tellus a egestas fermentum.
-Suspendisse eget tristique libero, sit amet maximus ligula. Suspendisse in
-tellus sagittis, ultrices ante quis, tristique lectus. Quisque fringilla, leo
-sagittis iaculis finibus, nunc nulla elementum neque, quis commodo justo libero
-a nunc. Integer convallis sapien eu laoreet congue.
+In the data exploration part of this project, we analysed the data layer by
+layer like peeling an onion. In the beginning, we utilized quantitative
+statistics to generate the number of words per tweet, frequency of emoji-usage,
+top (website) domains for links in tweets, use of punctuation, part-of-speech
+tags and the frequency of spelling mistake to observe the differences between
+the two classes using various characteristics and elements of the text.
+Fortunately, we did observe some patterns worth mentioning between the two
+classes. We observed that the tweets labelled as real tend to include less
+emojis, link to official news sites, and the distribution of the average words
+in disaster class shifts to larger number compared to non-disaster class. These
+mentioned patterns interested us to investigate the sentiment of the tweeters
+as real disaster tweets are more likely to be originated from news or a
+serious/negative emotion. Thus, the distribution of sentiment and subjectivity
+scores of tweets were analysed to see if we could have a clearer insight.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget erat mi.
-Nam non diam felis. Ut tincidunt, mauris eget ornare sodales, orci ligula
-bibendum dui, id tristique augue arcu eu dolor. Vestibulum tortor justo,
-malesuada at ligula eget, cursus laoreet diam. Orci varius natoque penatibus et
-magnis dis parturient montes, nascetur ridiculus mus. Ut non volutpat metus, id
-luctus nunc. Duis nisi nunc, ullamcorper at enim at, maximus luctus sem.
+However, the results are still not obvious enough to differentiate the disaster
+and non-disaster classes as tweets data are very noisy. Therefore, we tried to
+extract the prominent features by using TF-IDF and a decision tree. The vectors
+processed by TF-IDF and PCA seems to have no clear evidence to classify the two
+classes as it is the standard way of performing a latent semantic analysis
+(LSA). In comparison, the decision tree model achieved an F1-score of 0.76,
+which is a good result and the power of machine learning is uncovered. In the
+next stage of the project, we will be using word embedding method such as
+word2vec, BERT and sequence-to-sequence RNN to find out the patterns between
+tiny differences which are hard to be found by the existing methods.
 
 % Can use something like this to put references on a page
 % by themselves when using endfloat and the captionsoff option.
