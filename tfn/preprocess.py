@@ -134,7 +134,10 @@ class Dataset():
 
             # Applies cleaning from clean.py
             doc = clean(doc)
-            
+
+            # Replace hashtag with <hashtag> token as is encoded in GLoVe
+            doc = doc.replace('#', '<hashtag> ')
+
             # Tokenize the document.
             tokens = [lemmatize(token.text, token.pos_)[0].lower() for token in en(doc)]
 
@@ -176,6 +179,9 @@ class Dataset():
             
             # Applies cleaning from clean.py
             doc = clean(doc)
+
+            # Replace hashtag with <hashtag> token as is encoded in GLoVe
+            doc = doc.replace('#', '<hashtag> ')
             
             # Tokenize
             tokens = [word.lower() for word in tokenizer.tokenize(doc)]

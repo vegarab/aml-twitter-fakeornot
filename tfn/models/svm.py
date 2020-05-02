@@ -2,15 +2,20 @@ from tfn.models.model import Model
 from tfn.preprocess import split_binary_classes
 from tfn.feature_extraction.tf_idf import get_tfidf_model
 from sklearn.svm import SVC
+import numpy as np
+
 
 class SVM(Model):
     def fit(self, X, y):
-
         self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
 
         self.clf = SVC(kernel='rbf')
+
+        print(type(self.corpus_matrix))
+        print(self.corpus_matrix.shape)
+        print(self.corpus_matrix[0, :])
         self.clf.fit(self.corpus_matrix, y)
-    
+
     def predict(self, X):
         X_trans = self.vectorizer.transform(X)
         y_pred = self.clf.predict(X_trans)
