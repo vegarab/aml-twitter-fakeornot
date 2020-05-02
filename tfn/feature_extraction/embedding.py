@@ -1,4 +1,3 @@
-import torch
 import numpy as np
 import pickle
 import os
@@ -18,10 +17,8 @@ class Embedding:
         self.vec_file = misc_dir / ("glove.%s.npy" % self.emb_size)
         self.idx_file = misc_dir / "idx_map.p"
 
-        print(os.path.abspath(self.glove_file))
-        self.vectorized = self.get_corpus_vectors()
-
-    def get_corpus_vectors(self):
+    @property
+    def corpus_vectors(self):
         vector_mapping, word_idx_mapping = self.mapping()
         max_len = len(max(self.corpus, key=len))
         output = np.zeros(shape=(len(self.corpus), max_len, self.emb_size))
@@ -35,7 +32,7 @@ class Embedding:
                     word_idx = word_idx_mapping[word]
                     output[i, j, :] = vector_mapping[word_idx]
                 except KeyError:
-                    print(word)
+                    print('Embedding not found for word "%s".'%word)
         return output
 
     def mapping(self):
