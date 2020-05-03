@@ -11,14 +11,18 @@ class LSTM(nn.Module):
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
                             bidirectional=True, batch_first=True)
         self.fc = nn.Linear(2*hidden_size*seq_length, output_size)
+        self.dropout = nn.Dropout(0.2)
 
     def forward(self, x):
         lstm_out, _ = self.lstm(x)
         lstm_out_flat = lstm_out.reshape(
             (lstm_out.shape[0], -1)
         )
-        fc_out = self.fc(lstm_out_flat)
+        dropout_out = self.dropout(lstm_out_flat)
+        fc_out = self.fc(dropout_out)
         act_out = torch.sigmoid(fc_out)
+        if not self.training:
+            act_out = (act_out > 0.5).double()
         return act_out
 
 
@@ -35,10 +39,13 @@ class LSTMModel(Model):
         self.model = LSTM(input_size=num_features, seq_length=seq_length, hidden_size=hidden_dim, output_size=output_dim,
                           num_layers=num_layers)
         self.model.double()
-        self.model.cuda(device=self.device)
+        if self.device == "cuda:0":
+            self.model.cuda(device=self.device)
+
         self.batch_size = 20
 
     def fit(self, X, y, epochs=5):
+        self.model.train()
         learning_rate = 0.01
         momentum = 0.1
 
@@ -49,7 +56,7 @@ class LSTMModel(Model):
                                    torch.tensor(y, device=self.device)
             )
 
-        train_loader = DataLoader(train_data, batch_size=self.batch_size, drop_last=True)
+        train_loader = DataLoader(train_data, batch_size=self.batch_size)
 
         last_lr_drop = 0
         prev_training_loss = 999_999
@@ -66,16 +73,20 @@ class LSTMModel(Model):
                 loss.backward()
                 optimizer.step()
             print('Training Loss: %.4g' % training_loss)
+            print('Loss / Prev : %s' % (training_loss / prev_training_loss))
             if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.995:
                 learning_rate /= 2
                 last_lr_drop = epoch
+                print("Learning rate halved.")
             prev_training_loss = training_loss
 
     def predict(self, X):
+        self.model.eval()
         test_data = TensorDataset(torch.tensor(X, device=self.device))
-        test_loader = DataLoader(test_data, batch_size=self.batch_size, drop_last=True)
+        test_loader = DataLoader(test_data, batch_size=self.batch_size)
         predictions_list = []
         for X_test in test_loader:
+            X_test = X_test[0]
             y_pred = self.model(X_test)
             if self.device == "cpu":
                 predictions_list.append(y_pred.data.numpy())
@@ -103,7 +114,7 @@ if __name__ == "__main__":
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     lstm = LSTMModel()
-    lstm.fit(X_train, y_train, epochs=50)
+    lstm.fit(X_train, y_train, epochs=1)
 
     y_pred = lstm.predict(X_test)
 
