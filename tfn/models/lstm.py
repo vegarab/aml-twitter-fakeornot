@@ -46,7 +46,7 @@ class LSTMModel(Model):
 
     def fit(self, X, y, epochs=5):
         self.model.train()
-        learning_rate = 0.01
+        learning_rate = 0.1
         momentum = 0.2
 
         optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
@@ -74,7 +74,7 @@ class LSTMModel(Model):
                 optimizer.step()
             print('Training Loss: %.4g' % training_loss)
             print('Loss / Prev : %s' % (training_loss / prev_training_loss))
-            if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.995:
+            if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.999:
                 learning_rate /= 2
                 last_lr_drop = epoch
                 print("Learning rate halved.")
