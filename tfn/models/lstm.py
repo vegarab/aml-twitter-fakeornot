@@ -49,7 +49,7 @@ class LSTMModel(Model):
                                    torch.tensor(y, device=self.device)
             )
 
-        train_loader = DataLoader(train_data, batch_size=self.batch_size)
+        train_loader = DataLoader(train_data, batch_size=self.batch_size, drop_last=True)
 
         last_lr_drop = 0
         prev_training_loss = 999_999
@@ -73,7 +73,7 @@ class LSTMModel(Model):
 
     def predict(self, X):
         test_data = TensorDataset(torch.tensor(X, device=self.device))
-        test_loader = DataLoader(test_data, batch_size=self.batch_size)
+        test_loader = DataLoader(test_data, batch_size=self.batch_size, drop_last=True)
         predictions_list = []
         for X_test in test_loader:
             y_pred = self.model(X_test)
