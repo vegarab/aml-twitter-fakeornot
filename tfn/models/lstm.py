@@ -113,7 +113,8 @@ if __name__ == "__main__":
 
     # Get data
     data = Dataset('twitter')
-    emb = GloveEmbedding(data.X, emb_size=200)
+    emb_size = 200
+    emb = GloveEmbedding(data.X, emb_size=emb_size)
     X = emb.corpus_vectors
     y = np.array(data.y)
 
@@ -121,7 +122,7 @@ if __name__ == "__main__":
 
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-    lstm = LSTMModel()
+    lstm = LSTMModel(num_features=emb_size)
     lstm.fit(X_train, y_train, epochs=200)
 
     y_pred = lstm.predict(X_test)
