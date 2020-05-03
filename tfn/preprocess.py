@@ -17,9 +17,11 @@ from sklearn.model_selection import train_test_split
 from spacy.lemmatizer import Lemmatizer
 
 from tfn import TRAIN_FILE
+from tfn.clean import clean
 
 
 _TRAIN_DATA_PATH = TRAIN_FILE
+_EMOJI_SEQUENCE = ' xx90'
 
 en = spacy.load('en_core_web_sm')
 lemmatize = en.Defaults.create_lemmatizer()
@@ -126,6 +128,13 @@ class Dataset():
 
         output = []
         for doc in corpus:
+            # Add special sequence for emojis (??). Needs to be done before any
+            # punctuation removal or tokenization
+            doc = doc.replace('??', _EMOJI_SEQUENCE)
+
+            # Applies cleaning from clean.py
+            doc = clean(doc)
+            
             # Tokenize the document.
             tokens = [lemmatize(token.text, token.pos_)[0].lower() for token in en(doc)]
 
@@ -161,6 +170,13 @@ class Dataset():
 
         output = []
         for doc in corpus:
+            # Add special sequence for emojis (??). Needs to be done before any
+            # punctuation removal or tokenization
+            doc = doc.replace('??', _EMOJI_SEQUENCE)
+            
+            # Applies cleaning from clean.py
+            doc = clean(doc)
+            
             # Tokenize
             tokens = [word.lower() for word in tokenizer.tokenize(doc)]
 
@@ -183,7 +199,7 @@ class Dataset():
 
             # Remove stopwords
             tokens = [token for token in tokens if token not in stop_words]
-            
+
             output.append(tokens)
 
         return output

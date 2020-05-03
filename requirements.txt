@@ -2,4 +2,7 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.0
 sklearn
 scipy
 nltk
-pandas
+pandas==0.25.3
+textblob
+vaderSentiment
+gensim
