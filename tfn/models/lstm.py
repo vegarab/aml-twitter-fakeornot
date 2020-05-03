@@ -35,6 +35,7 @@ class LSTMModel(Model):
         self.model = LSTM(input_size=num_features, seq_length=seq_length, hidden_size=hidden_dim, output_size=output_dim,
                           num_layers=num_layers)
         self.model.double()
+        self.model.cuda(device=self.device)
         self.batch_size = 20
 
     def fit(self, X, y, epochs=5):
