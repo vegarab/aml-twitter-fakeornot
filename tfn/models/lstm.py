@@ -47,7 +47,7 @@ class LSTMModel(Model):
     def fit(self, X, y, epochs=5):
         self.model.train()
         learning_rate = 0.01
-        momentum = 0.1
+        momentum = 0.2
 
         optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
         criterion = nn.BCELoss()
@@ -83,6 +83,10 @@ class LSTMModel(Model):
             if learning_rate < 0.00001:
                 break
             prev_training_loss = training_loss
+
+        # Save model
+        save_path = '../misc/model_save'
+        torch.save(self.model.state_dict(), save_path)
 
     def predict(self, X):
         self.model.eval()
