@@ -52,17 +52,23 @@ class LSTMModel(Model):
         optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
         criterion = nn.BCELoss()
 
-        train_data = TensorDataset(torch.tensor(X, device=self.device),
-                                   torch.tensor(y, device=self.device)
+        val_prop = 0.1
+        train_size = int((1-val_prop) * X.shape[0])
+        train_data = TensorDataset(torch.tensor(X[:train_size], device=self.device),
+                                   torch.tensor(y[:train_size], device=self.device)
+            )
+        val_data = TensorDataset(torch.tensor(X[train_size:], device=self.device),
+                                   torch.tensor(y[train_size:], device=self.device)
             )
 
         train_loader = DataLoader(train_data, batch_size=self.batch_size)
-
+        val_loader = DataLoader(val_data, batch_size=self.batch_size)
         last_lr_drop = 0
         prev_training_loss = 999_999
         for epoch in range(epochs):
             print("Epoch: %s" % epoch)
             training_loss = 0
+            val_loss = 0
             for i, (X_train, y_train) in enumerate(train_loader):
                 if i % 100 == 0:
                     print("Epoch progress: %s%%" % int(100 * i / len(train_loader)))
@@ -72,7 +78,14 @@ class LSTMModel(Model):
                 training_loss += loss.item()
                 loss.backward()
                 optimizer.step()
+
+            for (X_val, y_val) in val_loader:
+                y_pred = self.model(X_val)
+                loss = criterion(y_pred, y_val.double())
+                val_loss += loss.item()
+
             print('Training Loss: %.4g' % training_loss)
+            print('Validation Loss: %.4g' % val_loss)
             print('Loss / Prev : %s' % (training_loss / prev_training_loss))
             if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.999:
                 learning_rate /= 2
@@ -123,7 +136,7 @@ if __name__ == "__main__":
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     lstm = LSTMModel(num_features=emb_size)
-    lstm.fit(X_train, y_train, epochs=100)
+    lstm.fit(X_train, y_train, epochs=50)
 
     y_pred = lstm.predict(X_test)
 
