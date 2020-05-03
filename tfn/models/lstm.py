@@ -78,6 +78,10 @@ class LSTMModel(Model):
                 learning_rate /= 2
                 last_lr_drop = epoch
                 print("Learning rate halved.")
+
+            # End early if lr falls too low
+            if learning_rate < 0.00001:
+                break
             prev_training_loss = training_loss
 
     def predict(self, X):
@@ -114,7 +118,7 @@ if __name__ == "__main__":
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     lstm = LSTMModel()
-    lstm.fit(X_train, y_train, epochs=1)
+    lstm.fit(X_train, y_train, epochs=200)
 
     y_pred = lstm.predict(X_test)
 
