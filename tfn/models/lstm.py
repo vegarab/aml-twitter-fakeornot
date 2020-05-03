@@ -51,9 +51,9 @@ class LSTMModel(Model):
         train_loader = DataLoader(train_data, batch_size=self.batch_size)
 
         last_lr_drop = 0
+        prev_training_loss = 999_999
         for epoch in range(epochs):
             print("Epoch: %s" % epoch)
-            prev_training_loss = training_loss
             training_loss = 0
             for i, (X_train, y_train) in enumerate(train_loader):
                 if i % 100 == 0:
@@ -68,6 +68,7 @@ class LSTMModel(Model):
             if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.995:
                 learning_rate /= 2
                 last_lr_drop = epoch
+            prev_training_loss = training_loss
 
     def predict(self, X):
         test_data = TensorDataset(torch.tensor(X, device=self.device))
