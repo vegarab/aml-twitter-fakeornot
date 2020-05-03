@@ -65,7 +65,7 @@ class Embedding:
                 try:
                     vector_mapping[i] = vector
                 except ValueError:
-                    print(line)
+                    print("Line %s resulted in an error. Investigate." % line)
 
         # Saves vector and index mapping files for future use
         with open(self.idx_file, 'wb') as f:

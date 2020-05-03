@@ -18,7 +18,6 @@ class LSTM(nn.Module):
             (lstm_out.shape[0], -1)
         )
         fc_out = self.fc(lstm_out_flat)
-        print(fc_out.shape)
         act_out = torch.sigmoid(fc_out)
         return act_out
 
@@ -39,7 +38,7 @@ class LSTMModel(Model):
         self.batch_size = 20
 
     def fit(self, X, y, epochs=5):
-        learning_rate = 0.001
+        learning_rate = 0.01
         momentum = 0.1
 
         optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
@@ -51,11 +50,14 @@ class LSTMModel(Model):
 
         train_loader = DataLoader(train_data, batch_size=self.batch_size)
 
+        last_lr_drop = 0
         for epoch in range(epochs):
             print("Epoch: %s" % epoch)
+            prev_training_loss = training_loss
             training_loss = 0
             for i, (X_train, y_train) in enumerate(train_loader):
-                print(i / len(train_loader))
+                if i % 100 == 0:
+                    print("Epoch progress: %s%%" % int(100 * i / len(train_loader)))
                 self.model.zero_grad()
                 y_pred = self.model(X_train)
                 loss = criterion(y_pred, y_train.double())
@@ -63,6 +65,9 @@ class LSTMModel(Model):
                 loss.backward()
                 optimizer.step()
             print('Training Loss: %.4g' % training_loss)
+            if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.995:
+                learning_rate /= 2
+                last_lr_drop = epoch
 
     def predict(self, X):
         test_data = TensorDataset(torch.tensor(X, device=self.device))
