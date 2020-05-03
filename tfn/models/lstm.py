@@ -45,7 +45,10 @@ class LSTMModel(Model):
         optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
         criterion = nn.BCELoss()
 
-        train_data = TensorDataset(torch.tensor(X), torch.tensor(y))
+        train_data = TensorDataset(torch.tensor(X, device=self.device),
+                                   torch.tensor(y, device=self.device)
+            )
+
         train_loader = DataLoader(train_data, batch_size=self.batch_size)
 
         for epoch in range(epochs):
@@ -62,7 +65,7 @@ class LSTMModel(Model):
             print('Training Loss: %.4g' % training_loss)
 
     def predict(self, X):
-        test_data = TensorDataset(X)
+        test_data = TensorDataset(torch.tensor(X, device=self.device))
         test_loader = DataLoader(test_data, batch_size=self.batch_size)
         predictions_list = []
         for X_test in test_loader:
