@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 
-class Embedding:
+class GloveEmbedding:
     def __init__(self, corpus, emb_type='word', emb_size=50):
         if emb_size not in [25, 50, 100, 200]:
             raise ValueError("Embedding size must be 25, 50, 100 or 200.")
@@ -83,7 +83,7 @@ class Embedding:
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
     ds = Dataset('twitter')
-    emb = Embedding(ds.X)
+    emb = GloveEmbedding(ds.X)
 
     print(emb.vectorized.shape)
     print(emb.corpus[0])

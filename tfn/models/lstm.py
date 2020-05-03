@@ -33,7 +33,7 @@ class LSTMModel(Model):
         #TODO: seq_length needs to be set automatically by X.shape
         seq_length = 29
         num_features = num_features
-        hidden_dim = 50
+        hidden_dim = 100
         output_dim = 1
         num_layers = 2
         self.model = LSTM(input_size=num_features, seq_length=seq_length, hidden_size=hidden_dim, output_size=output_dim,
@@ -102,14 +102,14 @@ class LSTMModel(Model):
 
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
-    from tfn.feature_extraction.embedding import Embedding
+    from tfn.feature_extraction.embedding import GloveEmbedding
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score, roc_auc_score
     import numpy as np
 
     # Get data
     data = Dataset('twitter')
-    emb = Embedding(data.X)
+    emb = GloveEmbedding(data.X, emb_size=200)
     X = emb.corpus_vectors
     y = np.array(data.y)
 
