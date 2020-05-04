@@ -47,7 +47,7 @@ class LSTMModel(Model):
         self.model.fc.in_features *= X.shape[1]
         print(self.model.fc.in_features)
         self.model.train()
-        learning_rate = 0.1
+        learning_rate = 0.01
         momentum = 0.2
 
         optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
