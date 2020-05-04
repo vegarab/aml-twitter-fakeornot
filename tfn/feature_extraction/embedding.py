@@ -6,11 +6,11 @@ import warnings
 
 
 class GloveEmbedding:
-    def __init__(self, corpus, type="word", emb_size=50):
+    def __init__(self, corpus, type="glove", emb_size=50):
         self.corpus = corpus
         misc_dir = Path("../misc/")
         self.type = type
-        if self.type == "word":
+        if self.type == "glove":
             if emb_size not in [25, 50, 100, 200]:
                 raise ValueError("Embedding size must be 25, 50, 100 or 200.")
             self.emb_size = emb_size
@@ -24,6 +24,8 @@ class GloveEmbedding:
             self.glove_file = misc_dir / "glove.840B.300d-char.txt"
             self.vec_file = misc_dir / "glove.char.npy"
             self.idx_file = misc_dir / "idx_map_char.p"
+        else:
+            raise ValueError()
 
 
     @property
@@ -50,7 +52,7 @@ class GloveEmbedding:
         elif os.path.exists(self.glove_file):
             return self.mapping_from_file()
         else:
-            if self.type == "word":
+            if self.type == "glove":
                 raise FileNotFoundError("Mapping files not found. Please run 'get_glove_embeddings.ipynb' from notebooks.")
             else:
                 raise FileNotFoundError(

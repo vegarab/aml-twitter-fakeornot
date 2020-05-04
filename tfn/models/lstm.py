@@ -135,11 +135,11 @@ if __name__ == "__main__":
                         help="Maximum number of epochs to run for.")
     parser.add_argument("--emb-size", "-s", dest="emb_size", default=50, type=int,
                         help="Size of word embedding vectors (must be in 25, 50, 100, 200).")
-    parser.add_argument("--emb-type", "-t", dest="type", default="word", type=str,
+    parser.add_argument("--emb-type", "-t", dest="type", default="glove", type=str,
                         help="Embedding type. Can be 'word' or 'char'.")
     args = parser.parse_args()
 
-    if args.type == "word":
+    if args.type == "glove":
         emb_size = args.emb_size
     else:
         emb_size = 300
