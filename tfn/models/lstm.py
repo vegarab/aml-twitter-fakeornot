@@ -42,10 +42,6 @@ class LSTMModel(Model):
         self.batch_size = 20
 
     def fit(self, X, y, epochs=5):
-        print(self.model.fc.in_features)
-        print(X.shape[1])
-        self.model.fc.in_features *= X.shape[1]
-        print(self.model.fc.in_features)
         self.model.train()
         learning_rate = 0.01
         momentum = 0.2
@@ -53,7 +49,7 @@ class LSTMModel(Model):
         optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
         criterion = nn.BCELoss()
 
-        val_prop = 0.1
+        val_prop = 0.1 # proportion of data used for validation
         train_size = int((1-val_prop) * X.shape[0])
         train_data = TensorDataset(torch.tensor(X[:train_size], device=self.device),
                                    torch.tensor(y[:train_size], device=self.device)
@@ -88,6 +84,9 @@ class LSTMModel(Model):
             print('Training Loss: %.4g' % training_loss)
             print('Validation Loss: %.4g' % val_loss)
             print('Loss / Prev : %s' % (training_loss / prev_training_loss))
+
+            # If last learning rate drop happened more than 5 epochs to go and the current training loss
+            # is higher than 99.9% of the previous, then half the learning rate.
             if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.999:
                 learning_rate /= 2
                 last_lr_drop = epoch
@@ -130,12 +129,13 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--epochs", "-e", dest="epochs", default=50, type=int,
                         help="Maximum number of epochs to run for.")
+    parser.add_argument("--emb-size", "-s", dest="emb_size", default=50, type=int,
+                        help="Size of word embedding vactors (must be in 25, 50, 100, 200).")
     args = parser.parse_args()
 
     # Get data
     data = Dataset('glove')
-    emb_size = 50
-    emb = GloveEmbedding(data.X, emb_size=emb_size)
+    emb = GloveEmbedding(data.X, emb_size=args.emb_size)
     X = emb.corpus_vectors
     y = np.array(data.y)
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     # print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-    lstm = LSTMModel(num_features=emb_size)
+    lstm = LSTMModel(num_features=args.emb_size)
     lstm.fit(X_train, y_train, epochs=args.epochs)
 
     y_pred = lstm.predict(X_test)
