@@ -9,14 +9,15 @@ class GloveEmbedding:
     def __init__(self, corpus, type="word", emb_size=50):
         self.corpus = corpus
         misc_dir = Path("../misc/")
-        if type == "word":
+        self.type = type
+        if self.type == "word":
             if emb_size not in [25, 50, 100, 200]:
                 raise ValueError("Embedding size must be 25, 50, 100 or 200.")
             self.emb_size = emb_size
             self.glove_file = misc_dir / ("glove.twitter.27B.%sd.txt" % self.emb_size)
             self.vec_file = misc_dir / ("glove.%s.npy" % self.emb_size)
             self.idx_file = misc_dir / "idx_map.p"
-        elif type == "char":
+        elif self.type == "char":
             if emb_size:
                 warnings.warn('Embedding size of %s was used but embedding size is an irrelevent argument for type "char".' % emb_size)
             self.emb_size = 300
@@ -49,8 +50,11 @@ class GloveEmbedding:
         elif os.path.exists(self.glove_file):
             return self.mapping_from_file()
         else:
-            raise FileNotFoundError("Mapping files not found. Please run 'get_glove_embeddings.ipynb' from notebooks.")
-
+            if self.type == "word":
+                raise FileNotFoundError("Mapping files not found. Please run 'get_glove_embeddings.ipynb' from notebooks.")
+            else:
+                raise FileNotFoundError(
+                    "Mapping files not found. Download character embeddings from https://github.com/minimaxir/char-embeddings and place in tfn/misc.")
     def mapping_from_file(self):
         def _file_len(f):
             return len(f.readlines())
