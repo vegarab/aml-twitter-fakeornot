@@ -32,7 +32,7 @@ class LSTMModel(Model):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         hidden_dim = 50
         output_dim = 1
-        num_layers = 2
+        num_layers = 3
         self.model = LSTM(input_size=num_features, seq_length=seq_length, hidden_size=hidden_dim, output_size=output_dim,
                           num_layers=num_layers)
         self.model.double()
