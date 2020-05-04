@@ -27,12 +27,9 @@ class LSTM(nn.Module):
 
 
 class LSTMModel(Model):
-    def __init__(self, num_features=50):
+    def __init__(self, num_features=50, seq_length=60):
         super().__init__()
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        #TODO: seq_length needs to be set automatically by X.shape
-        seq_length = 29
-        num_features = num_features
         hidden_dim = 100
         output_dim = 1
         num_layers = 2
@@ -45,6 +42,10 @@ class LSTMModel(Model):
         self.batch_size = 20
 
     def fit(self, X, y, epochs=5):
+        print(self.model.fc.in_features)
+        print(X.shape[1])
+        self.model.fc.in_features *= X.shape[1]
+        print(self.model.fc.in_features)
         self.model.train()
         learning_rate = 0.1
         momentum = 0.2
