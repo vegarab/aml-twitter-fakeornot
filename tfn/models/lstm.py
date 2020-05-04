@@ -122,7 +122,7 @@ if __name__ == "__main__":
     from tfn.preprocess import Dataset
     from tfn.feature_extraction.embedding import GloveEmbedding
     from sklearn.model_selection import train_test_split
-    from sklearn.metrics import accuracy_score, roc_auc_score
+    from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     import numpy as np
 
     from argparse import ArgumentParser
@@ -150,3 +150,4 @@ if __name__ == "__main__":
 
     print('GLoVe + LSTM accuracy:', round(accuracy_score(y_test, y_pred), 4))
     print('GLoVe + LSTM AUC:', round(roc_auc_score(y_test, y_pred), 4))
+    print('GLoVe + LSTM F1:', round(f1_score(y_test, y_pred), 4))
