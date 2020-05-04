@@ -132,14 +132,19 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", "-e", dest="epochs", default=50, type=int,
                         help="Maximum number of epochs to run for.")
     parser.add_argument("--emb-size", "-s", dest="emb_size", default=50, type=int,
-                        help="Size of word embedding vactors (must be in 25, 50, 100, 200).")
+                        help="Size of word embedding vectors (must be in 25, 50, 100, 200).")
     parser.add_argument("--emb-type", "-t", dest="type", default="word", type=str,
                         help="Embedding type. Can be 'word' or 'char'.")
     args = parser.parse_args()
 
+    if args.type == "word":
+        emb_size = args.emb_size
+    else:
+        emb_size = 300
+
     # Get data
     data = Dataset(args.type)
-    emb = GloveEmbedding(data.X, emb_size=args.emb_size, type=args.type)
+    emb = GloveEmbedding(data.X, emb_size=emb_size, type=args.type)
     X = emb.corpus_vectors
     y = np.array(data.y)
 
@@ -147,7 +152,7 @@ if __name__ == "__main__":
 
     # print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-    lstm = LSTMModel(num_features=args.emb_size)
+    lstm = LSTMModel(num_features=emb_size)
     lstm.fit(X_train, y_train, epochs=args.epochs)
 
     y_pred = lstm.predict(X_test)
