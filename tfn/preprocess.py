@@ -92,6 +92,7 @@ class Dataset():
                                   strip_digits=True,
                                   strip_hashtags=False,
                  test_size=0.3):
+
         # Get raw data
         self.corpus, self.y = self._get_training_data_from_csv()
         self.y = self.y.tolist()
@@ -107,9 +108,13 @@ class Dataset():
                                                strip_handles, 
                                                strip_rt,
                                                strip_digits)
+        elif tokenizer == 'glove':
+            self.X = self._tokenize_glove(self.corpus)
+        elif tokenizer == 'char':
+            self.X = self._tokenize_character(self.corpus)
         else:
-            raise AttributeError("This functions only accepts 'twitter' and "
-                               + "'lemmatize' as possible tokenizers")
+            raise AttributeError("This functions only accepts 'twitter', 'lemmatize', 'glove' and "
+                               + "'char' as possible tokenizers")
 
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=test_size)
 
@@ -179,9 +184,6 @@ class Dataset():
             
             # Applies cleaning from clean.py
             doc = clean(doc)
-
-            # Replace hashtag with <hashtag> token as is encoded in GLoVe
-            doc = doc.replace('#', '<hashtag> ')
             
             # Tokenize
             tokens = [word.lower() for word in tokenizer.tokenize(doc)]
@@ -210,6 +212,64 @@ class Dataset():
 
         return output
 
+    def _tokenize_glove(self, corpus):
+        ''' Tokenize corpus using NLTK's TwitterTokenizer '''
+
+        tokenizer = TweetTokenizer(strip_handles=False, reduce_len=True)
+        stop_words = _get_stop_words(strip_handles=False, strip_rt=False)
+
+        output = []
+        for doc in corpus:
+            # Add special sequence for emojis (??). Needs to be done before any
+            # punctuation removal or tokenization
+            doc = doc.replace('??', _EMOJI_SEQUENCE)
+
+            # Applies cleaning from clean.py
+            doc = clean(doc)
+
+            # Replace tokens as encoded in GLoVe
+            doc = re.sub(r'#\w+', '<hashtag>', doc)
+            doc = re.sub(r'@\w+', '<user> ', doc)
+            doc = re.sub(r'https?://t\.co/[\w\d]{10}', '<url>', doc)
+            doc = re.sub(r'(\d{1,3},?)+', '<number>', doc)
+            doc = re.sub(r'\.{2,}', "…", doc)
+            doc = doc.replace("'s", " 's")
+            doc = re.sub(r":\)", '<smile>', doc)
+            doc = re.sub(r"\(:", '<smile>', doc)
+            doc = re.sub(r":\(", '<sadface>', doc)
+            doc = re.sub(r"\):", '<sadface>', doc)
+
+            doc = doc.replace("-", " ")
+
+            # Tokenize
+            tokens = [word.lower() for word in tokenizer.tokenize(doc)]
+
+            # Remove tokens without text.
+            tokens = [token for token in tokens if bool(token.strip())]
+
+            # Remove punctuation from start of tokens.
+            # if strip_hashtags:
+            #     tokens = [re.sub(START_SPEC_CHARS, '', token) for token in tokens]
+            #
+            # # Remove punctuation from end of tokens.
+            # tokens = [re.sub(END_SPEC_CHARS, '', token) for token in tokens]
+
+            # Filters out frequent special characters
+            tokens = [token for token in tokens if token not in string.punctuation + '…’']
+
+            # Remove stopwords
+            tokens = [token for token in tokens if token not in stop_words]
+
+            output.append(tokens)
+
+        return output
+
+    def _tokenize_character(self, corpus):
+        output = []
+        for doc in corpus:
+            tokens = list(doc)
+            output.append(tokens)
+        return output
 
 if __name__ == '__main__':
-   ds = Dataset('twitter')
+   ds = Dataset('glove')

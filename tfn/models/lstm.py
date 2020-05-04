@@ -61,8 +61,8 @@ class LSTMModel(Model):
                                    torch.tensor(y[train_size:], device=self.device)
             )
 
-        train_loader = DataLoader(train_data, batch_size=self.batch_size)
-        val_loader = DataLoader(val_data, batch_size=self.batch_size)
+        train_loader = DataLoader(train_data, batch_size=self.batch_size, shuffle=True)
+        val_loader = DataLoader(val_data, batch_size=self.batch_size, shuffle=True)
         last_lr_drop = 0
         prev_training_loss = 999_999
         for epoch in range(epochs):
@@ -125,18 +125,18 @@ if __name__ == "__main__":
     import numpy as np
 
     # Get data
-    data = Dataset('twitter')
-    emb_size = 200
+    data = Dataset('glove')
+    emb_size = 50
     emb = GloveEmbedding(data.X, emb_size=emb_size)
     X = emb.corpus_vectors
     y = np.array(data.y)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True)
 
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     lstm = LSTMModel(num_features=emb_size)
-    lstm.fit(X_train, y_train, epochs=50)
+    lstm.fit(X_train, y_train, epochs=1)
 
     y_pred = lstm.predict(X_test)
 
