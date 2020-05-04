@@ -6,12 +6,12 @@ from tfn.models.model import Model
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, seq_length, hidden_size, output_size, num_layers):
+    def __init__(self, input_size, seq_length, hidden_size, output_size, num_layers, dropout=0.5):
         super(LSTM, self).__init__()
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
                             bidirectional=True, batch_first=True)
         self.fc = nn.Linear(2*hidden_size*seq_length, output_size)
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
         lstm_out, _ = self.lstm(x)
@@ -30,9 +30,11 @@ class LSTMModel(Model):
     def __init__(self, num_features=50, seq_length=60):
         super().__init__()
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        hidden_dim = 50
-        output_dim = 1
-        num_layers = 3
+
+        hidden_dim = 50 #Size of memory
+        num_layers = 2  # No. of layers
+        output_dim = 1  # Output dimension
+
         self.model = LSTM(input_size=num_features, seq_length=seq_length, hidden_size=hidden_dim, output_size=output_dim,
                           num_layers=num_layers)
         self.model.double()
@@ -131,10 +133,12 @@ if __name__ == "__main__":
                         help="Maximum number of epochs to run for.")
     parser.add_argument("--emb-size", "-s", dest="emb_size", default=50, type=int,
                         help="Size of word embedding vactors (must be in 25, 50, 100, 200).")
+    parser.add_argument("--emb-type", "-t", dest="type", default="word", type=str,
+                        help="Embedding type. Can be 'word' or 'char'.")
     args = parser.parse_args()
 
     # Get data
-    data = Dataset('glove')
+    data = Dataset(args.type)
     emb = GloveEmbedding(data.X, emb_size=args.emb_size)
     X = emb.corpus_vectors
     y = np.array(data.y)

@@ -2,20 +2,28 @@ import numpy as np
 import pickle
 import os
 from pathlib import Path
+import warnings
 
 
 class GloveEmbedding:
-    def __init__(self, corpus, emb_type='word', emb_size=50):
-        if emb_size not in [25, 50, 100, 200]:
-            raise ValueError("Embedding size must be 25, 50, 100 or 200.")
+    def __init__(self, corpus, type="word", emb_size=50):
         self.corpus = corpus
-        self.emb_size = emb_size
-        self.type = emb_type
-
         misc_dir = Path("../misc/")
-        self.glove_file = misc_dir / ("glove.twitter.27B.%sd.txt" % self.emb_size)
-        self.vec_file = misc_dir / ("glove.%s.npy" % self.emb_size)
-        self.idx_file = misc_dir / "idx_map.p"
+        if type == "word":
+            if emb_size not in [25, 50, 100, 200]:
+                raise ValueError("Embedding size must be 25, 50, 100 or 200.")
+            self.emb_size = emb_size
+            self.glove_file = misc_dir / ("glove.twitter.27B.%sd.txt" % self.emb_size)
+            self.vec_file = misc_dir / ("glove.%s.npy" % self.emb_size)
+            self.idx_file = misc_dir / "idx_map.p"
+        elif type == "char":
+            if emb_size:
+                warnings.warn('Embedding size of %s was used but embedding size is an irrelevent argument for type "char".' % emb_size)
+            self.emb_size = 300
+            self.glove_file = misc_dir / "glove.840B.300d-char.txt"
+            self.vec_file = misc_dir / "glove.char.npy"
+            self.idx_file = misc_dir / "idx_map_char.p"
+
 
     @property
     def corpus_vectors(self):
@@ -82,9 +90,9 @@ class GloveEmbedding:
 
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
-    ds = Dataset('twitter')
-    emb = GloveEmbedding(ds.X)
+    ds = Dataset('char')
+    emb = GloveEmbedding(ds.X, type='char')
 
-    print(emb.vectorized.shape)
+    print(emb.corpus_vectors.shape)
     print(emb.corpus[0])
-    print(emb.vectorized[0])
+    print(emb.corpus_vectors[0])

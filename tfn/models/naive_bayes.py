@@ -20,7 +20,7 @@ class Naive_Bayes(Model):
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
-    from sklearn.metrics import accuracy_score, roc_auc_score
+    from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from sklearn.model_selection import train_test_split
 
     data = Dataset('twitter')
@@ -32,3 +32,4 @@ if __name__ == '__main__':
 
     print('TF-IDF + Naive_Bayes accuracy:', round(accuracy_score(y_test, y_pred), 4))
     print('TF-IDF + Naive_Bayes AUC:', round(roc_auc_score(y_test, y_pred), 4))
+    print('TF-IDF + Naive_Bayes F1:', round(f1_score(y_test, y_pred), 4))
