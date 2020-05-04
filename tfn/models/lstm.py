@@ -76,14 +76,14 @@ class LSTMModel(Model):
                 self.model.zero_grad()
                 y_pred = self.model(X_train)
                 loss = criterion(y_pred, y_train.double())
-                training_loss += (loss.item() / y_pred.shape[0])
+                training_loss += (loss.item() / len(train_data))
                 loss.backward()
                 optimizer.step()
 
             for (X_val, y_val) in val_loader:
                 y_pred = self.model(X_val)
                 loss = criterion(y_pred, y_val.double())
-                val_loss += (loss.item() / y_pred.shape[0])
+                val_loss += (loss.item() / len(val_data))
 
             print('Training Loss: %.4g' % training_loss)
             print('Validation Loss: %.4g' % val_loss)
