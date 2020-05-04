@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     # print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-    lstm = LSTMModel(num_features=emb_size)
+    lstm = LSTMModel(num_features=emb_size, seq_length=X.shape[1])
     lstm.fit(X_train, y_train, epochs=args.epochs)
 
     y_pred = lstm.predict(X_test)
