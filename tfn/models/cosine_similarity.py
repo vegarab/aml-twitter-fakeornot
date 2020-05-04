@@ -11,7 +11,7 @@ class CosineSimilarity(Model):
 
         self.vectorizer0, self.corpus_matrix0, _ = get_tfidf_model(self.x0)
         self.vectorizer1, self.corpus_matrix1, _ = get_tfidf_model(self.x1)
-    
+
     def predict(self, X):
         y = []
         for x in X:
@@ -25,15 +25,31 @@ class CosineSimilarity(Model):
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
-    from sklearn.metrics import accuracy_score, roc_auc_score
+    from tfn.helper import export_results
+    from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
+    from sklearn.model_selection import train_test_split
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-x", "--export-results", dest="export", action='store_true',
+                        help="Exports results to results.csv")
+    args = parser.parse_args()
 
     data = Dataset('twitter')
+    X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
 
     cosine = CosineSimilarity()
-    cosine.fit(data.X_train, data.y_train)
+    cosine.fit(X_train, y_train)
 
-    y_pred = cosine.predict(data.X_test)
+    y_pred = cosine.predict(X_test)
 
-    print('TF-IDF + cosine-sim accuracy:', round(accuracy_score(data.y_test, y_pred), 4))
-    print('TF-IDF + cosine-sim AUC:', round(roc_auc_score(data.y_test, y_pred), 4))
+    acc = accuracy_score(y_test, y_pred)
+    roc = roc_auc_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
 
+    print('TF-IDF + cosine-sim accuracy:', round(acc, 4))
+    print('TF-IDF + cosine-sim AUC:', round(roc, 4))
+    print('TF-IDF + cosine-sim F1:', round(f1, 4))
+
+    if args.export:
+        export_results(acc=acc, roc=roc, f1=f1)

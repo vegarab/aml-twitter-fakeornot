@@ -96,8 +96,9 @@ class GloveEmbedding:
 
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
-    ds = Dataset('char')
-    emb = GloveEmbedding(ds.X, type='char')
+    type = 'glove'
+    ds = Dataset(type)
+    emb = GloveEmbedding(ds.X, type=type)
 
     print(emb.corpus_vectors.shape)
     print(emb.corpus[0])

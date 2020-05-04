@@ -20,8 +20,15 @@ class Naive_Bayes(Model):
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
+    from tfn.helper import export_results
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from sklearn.model_selection import train_test_split
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-x", "--export-results", dest="export", action='store_true',
+                        help="Exports results to results.csv")
+    args = parser.parse_args()
 
     data = Dataset('twitter')
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
@@ -30,6 +37,13 @@ if __name__ == '__main__':
     naive.fit(X_train, y_train)
     y_pred = naive.predict(X_test)
 
-    print('TF-IDF + Naive_Bayes accuracy:', round(accuracy_score(y_test, y_pred), 4))
-    print('TF-IDF + Naive_Bayes AUC:', round(roc_auc_score(y_test, y_pred), 4))
-    print('TF-IDF + Naive_Bayes F1:', round(f1_score(y_test, y_pred), 4))
+    acc = accuracy_score(y_test, y_pred)
+    roc = roc_auc_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+
+    print('TF-IDF + Naive_Bayes accuracy:', round(acc, 4))
+    print('TF-IDF + Naive_Bayes AUC:', round(roc, 4))
+    print('TF-IDF + Naive_Bayes F1:', round(f1, 4))
+
+    if args.export:
+        export_results(acc=acc, roc=roc, f1=f1)

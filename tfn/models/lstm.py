@@ -123,6 +123,7 @@ class LSTMModel(Model):
 
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
+    from tfn.helper import export_results
     from tfn.feature_extraction.embedding import GloveEmbedding
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
@@ -137,6 +138,8 @@ if __name__ == "__main__":
                         help="Size of word embedding vectors (must be in 25, 50, 100, 200).")
     parser.add_argument("--emb-type", "-t", dest="type", default="glove", type=str,
                         help="Embedding type. Can be 'word' or 'char'.")
+    parser.add_argument("-x", "--export-results", dest="export", action='store_true',
+                        help="Exports results to results.csv")
     args = parser.parse_args()
 
     if args.type == "glove":
@@ -159,6 +162,13 @@ if __name__ == "__main__":
 
     y_pred = lstm.predict(X_test)
 
-    print('GLoVe + LSTM accuracy:', round(accuracy_score(y_test, y_pred), 4))
-    print('GLoVe + LSTM AUC:', round(roc_auc_score(y_test, y_pred), 4))
-    print('GLoVe + LSTM F1:', round(f1_score(y_test, y_pred), 4))
+    acc = accuracy_score(y_test, y_pred)
+    roc = roc_auc_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+
+    print('GLoVe + LSTM accuracy:', round(acc, 4))
+    print('GLoVe + LSTM AUC:', round(roc, 4))
+    print('GLoVe + LSTM F1:', round(f1, 4))
+
+    if args.export:
+        export_results(acc=acc, roc=roc, f1=f1)

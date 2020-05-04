@@ -6,14 +6,12 @@ import numpy as np
 
 
 class SVM(Model):
-    def fit(self, X, y):
-        self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
-
+    def __init__(self):
+        super().__init__()
         self.clf = SVC(kernel='rbf')
 
-        print(type(self.corpus_matrix))
-        print(self.corpus_matrix.shape)
-        print(self.corpus_matrix[0, :])
+    def fit(self, X, y):
+        self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
         self.clf.fit(self.corpus_matrix, y)
 
     def predict(self, X):
@@ -25,8 +23,15 @@ class SVM(Model):
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
-    from sklearn.metrics import accuracy_score, roc_auc_score
+    from tfn.helper import export_results
+    from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from sklearn.model_selection import train_test_split
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-x", "--export-results", dest="export", action='store_true',
+                        help="Exports results to results.csv")
+    args = parser.parse_args()
 
     data = Dataset('twitter')
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
@@ -35,5 +40,13 @@ if __name__ == '__main__':
     svm.fit(X_train, y_train)
     y_pred = svm.predict(X_test)
 
-    print('TF-IDF + svm accuracy:', round(accuracy_score(y_test, y_pred), 4))
-    print('TF-IDF + svm AUC:', round(roc_auc_score(y_test, y_pred), 4))
+    acc = accuracy_score(y_test, y_pred)
+    roc = roc_auc_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+
+    print('TF-IDF + svm accuracy:', round(acc, 4))
+    print('TF-IDF + svm AUC:', round(roc, 4))
+    print('TF-IDF + svm F1:', round(f1, 4))
+
+    if args.export:
+        export_results(acc=acc, roc=roc, f1=f1)
