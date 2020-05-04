@@ -124,6 +124,12 @@ if __name__ == "__main__":
     from sklearn.metrics import accuracy_score, roc_auc_score
     import numpy as np
 
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument("--epochs", "-e", dest="epochs", default=50, help="Maximum number of epochs to run for.")
+    args = parser.parse_args()
+
     # Get data
     data = Dataset('glove')
     emb_size = 50
@@ -136,7 +142,7 @@ if __name__ == "__main__":
     print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     lstm = LSTMModel(num_features=emb_size)
-    lstm.fit(X_train, y_train, epochs=1)
+    lstm.fit(X_train, y_train, epochs=args.epochs)
 
     y_pred = lstm.predict(X_test)
 
