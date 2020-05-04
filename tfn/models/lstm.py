@@ -2,6 +2,8 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, TensorDataset
 
+import time
+
 from tfn.models.model import Model
 
 
@@ -100,7 +102,7 @@ class LSTMModel(Model):
             prev_training_loss = training_loss
 
         # Save model
-        save_path = '../misc/model_save'
+        save_path = '../misc/model_save_%s' % time.time()
         torch.save(self.model.state_dict(), save_path)
 
     def predict(self, X):
