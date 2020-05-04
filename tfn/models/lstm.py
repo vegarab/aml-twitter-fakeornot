@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     # Get data
     data = Dataset(args.type)
-    emb = GloveEmbedding(data.X, emb_size=args.emb_size)
+    emb = GloveEmbedding(data.X, emb_size=args.emb_size, type=args.type)
     X = emb.corpus_vectors
     y = np.array(data.y)
 
