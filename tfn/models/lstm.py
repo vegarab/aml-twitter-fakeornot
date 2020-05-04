@@ -11,7 +11,7 @@ class LSTM(nn.Module):
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
                             bidirectional=True, batch_first=True)
         self.fc = nn.Linear(2*hidden_size*seq_length, output_size)
-        self.dropout = nn.Dropout(0.2)
+        self.dropout = nn.Dropout(0.5)
 
     def forward(self, x):
         lstm_out, _ = self.lstm(x)
@@ -128,7 +128,8 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
-    parser.add_argument("--epochs", "-e", dest="epochs", default=50, help="Maximum number of epochs to run for.")
+    parser.add_argument("--epochs", "-e", dest="epochs", default=50, type=int,
+                        help="Maximum number of epochs to run for.")
     args = parser.parse_args()
 
     # Get data
@@ -140,7 +141,7 @@ if __name__ == "__main__":
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True)
 
-    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    # print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     lstm = LSTMModel(num_features=emb_size)
     lstm.fit(X_train, y_train, epochs=args.epochs)
