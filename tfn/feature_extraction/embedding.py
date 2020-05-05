@@ -108,10 +108,10 @@ class CharEmbedding:
         self.X_enc = self.encode(X, model_path)
 
     # Train character embeddings using external Twitter dataset
-    def train(self, training_path, model_path):
+    def train(self, training_path, model_path, lr=0.001, epochs=20):
         with open(training_path, 'r') as f:
             sentences = [list(x) for x in f.readlines()]
-        model = Word2Vec(sentences, alpha=0.001, compute_loss=True, callbacks=[self.callback()])
+        model = Word2Vec(sentences, alpha=lr, iter=epochs, compute_loss=True, callbacks=[self.callback()])
         model.wv.save(model_path)
 
     # Encode our data using above embeddings
