@@ -124,7 +124,7 @@ class LSTMModel(Model):
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
     from tfn.helper import export_results
-    from tfn.feature_extraction.embedding import GloveEmbedding
+    from tfn.feature_extraction.embedding import GloveEmbedding, CharEmbedding
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     import numpy as np
@@ -147,11 +147,18 @@ if __name__ == "__main__":
     else:
         emb_size = 300
 
-    # Get data
+    # Get data GLoVe
+    # data = Dataset(args.type)
+    # emb = GloveEmbedding(data.X, emb_size=emb_size, type=args.type)
+    # X = emb.corpus_vectors
+    # y = np.array(data.y)
+
+    # Get data char emb
     data = Dataset(args.type)
-    emb = GloveEmbedding(data.X, emb_size=emb_size, type=args.type)
-    X = emb.corpus_vectors
+    emb = CharEmbedding(data.X)
+    X = emb.X_enc
     y = np.array(data.y)
+    emb_size = 100
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True)
 
