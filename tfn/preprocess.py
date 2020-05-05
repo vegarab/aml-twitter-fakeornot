@@ -268,6 +268,8 @@ class Dataset():
     def _tokenize_character(self, corpus):
         output = []
         char_set = string.ascii_letters + string.digits + string.punctuation + " "
+        char_set = char_set.replace(">", "")
+        char_set = char_set.replace("<", "")
         for doc in corpus:
             tokens = [x for x in doc if x in char_set]
             output.append(tokens)

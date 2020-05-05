@@ -153,4 +153,4 @@ if __name__ == "__main__":
 
     # Test OneHotCharEmbedding
     ds = Dataset('char')
-    emb = CharEmbedding(ds.X, train=True, training_path="../data/training.1600000.processed.noemoticon.csv")
+    emb = CharEmbedding(ds.X, train=False, training_path="../data/training.1600000.processed.noemoticon.csv")
