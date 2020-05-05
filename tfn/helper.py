@@ -6,7 +6,7 @@ import pandas as pd
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
 
-from tfn import TRAIN_FILE
+from tfn import TRAIN_FILE, GLOVE_25_FILE
 
 
 def export_results(name, acc, roc, f1):
@@ -21,7 +21,8 @@ def export_results(name, acc, roc, f1):
 def _get_glove_embeddings(emb_size=25):
     glove_file = "../misc/glove_%s.wv" % emb_size
     if not os.path.exists(glove_file):
-        glove_raw_file = "../misc/glove.twitter.27B.%sd.txt" % emb_size
+        glove_raw_file = GLOVE_25_FILE
+
         glove2word2vec(glove_raw_file, glove_file)
     model = KeyedVectors.load_word2vec_format(glove_file)
 
