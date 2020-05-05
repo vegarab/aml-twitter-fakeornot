@@ -5,8 +5,8 @@ from tfn.models import CosineSimilarity, Dummy, KNN, LSTMModel, Naive_Bayes, Ran
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 
-data_twitter = Dataset('twitter')
-X_train_t, X_test_t, y_train_t, y_test_t = train_test_split(data.X, data.y)
+data_t = Dataset('twitter')
+X_train_t, X_test_t, y_train_t, y_test_t = train_test_split(data_t.X, data_t.y)
 aug = AugmentWithEmbeddings(X_train_t, y_train_t)
 X_aug, y_aug = aug.X_aug, aug.y_aug
 
