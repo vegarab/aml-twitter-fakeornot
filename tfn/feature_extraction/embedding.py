@@ -1,8 +1,6 @@
 import numpy as np
-import pickle
 import os
-from pathlib import Path
-import warnings
+
 from gensim.models import Word2Vec, KeyedVectors
 from gensim.models.callbacks import CallbackAny2Vec
 
