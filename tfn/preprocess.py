@@ -18,6 +18,7 @@ from spacy.lemmatizer import Lemmatizer
 
 from tfn import TRAIN_FILE
 from tfn.clean import clean
+from tfn.helper import _get_training_data_from_csv
 
 
 _TRAIN_DATA_PATH = TRAIN_FILE
@@ -94,7 +95,7 @@ class Dataset():
                  test_size=0.3):
 
         # Get raw data
-        self.corpus, self.y = self._get_training_data_from_csv()
+        self.corpus, self.y = _get_training_data_from_csv()
         self.y = self.y.tolist()
 
         if tokenizer == 'twitter':
@@ -118,14 +119,6 @@ class Dataset():
 
         # Might be betteer to save splitting for outside the dataset so as to preserve the order of entries?
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=test_size)
-
-    def _get_training_data_from_csv(self):
-        df = pandas.read_csv(_TRAIN_DATA_PATH, header=0)
-        X = df['text'].to_numpy()
-        y = df['target'].to_numpy()
-
-        return X, y
-
 
     def _tokenize_with_lemma(self, corpus, strip_handles=True, strip_rt=True, strip_digits=True):
         ''' Tokenize and lemmatize using Spacy '''
