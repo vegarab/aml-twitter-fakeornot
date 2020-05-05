@@ -108,10 +108,10 @@ class CharEmbedding:
         self.X_enc = self.encode(X, model_path)
 
     # Train character embeddings using external Twitter dataset
-    def train(self, training_path, model_path, lr=0.001, epochs=20):
+    def train(self, training_path, model_path, epochs=100):
         with open(training_path, 'r') as f:
             sentences = [list(x) for x in f.readlines()]
-        model = Word2Vec(sentences, alpha=lr, iter=epochs, compute_loss=True, callbacks=[self.callback()])
+        model = Word2Vec(sentences, iter=epochs, compute_loss=True, callbacks=[self.callback()])
         model.wv.save(model_path)
 
     # Encode our data using above embeddings
@@ -130,11 +130,13 @@ class CharEmbedding:
 
         def __init__(self):
             self.epoch = 0
+            self.loss_previous_step = 0
 
         def on_epoch_end(self, model):
             loss = model.get_latest_training_loss()
-            print('Loss after epoch {}: {}'.format(self.epoch, loss))
+            print('Loss after epoch {}: {}'.format(self.epoch, loss - self.loss_previous_step))
             self.epoch += 1
+            self.loss_previous_step = loss
 
 
 if __name__ == "__main__":
