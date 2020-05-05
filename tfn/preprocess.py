@@ -116,6 +116,7 @@ class Dataset():
             raise AttributeError("This functions only accepts 'twitter', 'lemmatize', 'glove' and "
                                + "'char' as possible tokenizers")
 
+        # Might be betteer to save splitting for outside the dataset so as to preserve the order of entries?
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=test_size)
 
     def _get_training_data_from_csv(self):
