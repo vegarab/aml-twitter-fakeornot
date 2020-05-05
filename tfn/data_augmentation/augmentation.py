@@ -2,31 +2,29 @@ import pandas as pd
 import random
 import re
 
-from tfn.helper import _get_glove_embeddings, _get_training_data_from_csv
+from tfn.helper import _get_glove_embeddings
 
 
 class AugmentWithEmbeddings:
-    def __init__(self, replace_pr=0.5):
-        self.corpus, self.y = _get_training_data_from_csv()
+    def __init__(self, X, y, replace_pr=0.5):
         self.glove_emb = _get_glove_embeddings()
-
-        augmented_data = {'text': [], 'target': []}
-        for i in range(len(self.corpus)):
+        self.X_aug = []
+        self.y_aug = []
+        for i in range(len(X)):
+            sentence = X[i]
+            self.X_aug.append(sentence)
+            self.y_aug.append(y[i])
             for _ in range(5):
-                sentence = self.corpus[i]
-                sentence_spl = sentence.split()
                 new_sentence = []
-                for word in sentence_spl:
+                for word in sentence:
                     if random.random() < replace_pr:
                         new_word = self.replace_word(word)
                     else:
                         new_word = word
                     new_sentence.append(new_word)
-                new_sentence = " ".join(new_sentence)
                 print(sentence, new_sentence)
-                augmented_data['text'].append(new_sentence)
-                augmented_data['target'].append(self.y[i])
-        self.augmented = pd.DataFrame(augmented_data)
+                self.X_aug.append(new_sentence)
+                self.y_aug.append(y[i])
 
     def replace_word(self, word, topn=5):
         word = word.lower()
@@ -45,10 +43,6 @@ class AugmentWithEmbeddings:
         else:
             return org_word
 
-    def save_data(self):
-        save_path = "../data/augmented.csv"
-        self.augmented.to_csv(save_path)
-
 
 if __name__ == "__main__":
-    aug = AugmentWithEmbeddings()
+    pass

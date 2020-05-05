@@ -1,5 +1,6 @@
 from tfn.models.model import Model
 from tfn.feature_extraction.tf_idf import get_tfidf_model
+from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
 
 from sklearn.ensemble import RandomForestClassifier
 
@@ -29,6 +30,9 @@ if __name__ == '__main__':
 
     data = Dataset('twitter')
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
+
+    aug = AugmentWithEmbeddings(X_train, y_train)
+    X_train, y_train = aug.X_aug, aug.y_aug
 
     rf = RandomForest()
     rf.fit(X_train, y_train)
