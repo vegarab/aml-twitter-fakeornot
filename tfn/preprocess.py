@@ -271,6 +271,7 @@ class Dataset():
         char_set = char_set.replace(">", "")
         char_set = char_set.replace("<", "")
         for doc in corpus:
+            doc = doc.replace(" ", "_")
             tokens = [x for x in doc if x in char_set]
             output.append(tokens)
         return output

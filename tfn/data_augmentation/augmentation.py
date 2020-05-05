@@ -38,18 +38,20 @@ class AugmentWithEmbeddings:
 
 
     def replace_word(self, word, topn=5):
-        org_word = word
         word = word.lower()
-        word = re.sub(r'[^\w]', '', word)
-        # try:
-        closest = self.glove_emb.similar_by_word(word, topn=topn)
-        closest = [closest[i][0] for i in range(topn) if closest[i][1] > 0.8]
+        org_word = word
+        word = re.sub('^[^a-zA-Z]*|[^a-zA-Z]*$', '', word)
         try:
+            closest = self.glove_emb.similar_by_word(word, topn=topn)
+        except KeyError:
+            return org_word
+        closest = [closest[i][0] for i in range(topn) if closest[i][1] > 0.8]
+
+        if closest:
             new_word = random.choice(closest)
             new_word = re.sub(word, new_word, org_word)
             return new_word
-        except Exception as e:
-            print(e)
+        else:
             return org_word
 
     def save_data(self):
