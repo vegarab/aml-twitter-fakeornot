@@ -6,7 +6,7 @@ import pandas as pd
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
 
-from tfn import TRAIN_FILE, GLOVE_25_FILE
+from tfn import TRAIN_FILE, GLOVE_25_FILE, GLOVE_25_WV_FILE
 
 
 def export_results(name, acc, roc, f1):
@@ -19,7 +19,8 @@ def export_results(name, acc, roc, f1):
 
 
 def _get_glove_embeddings(emb_size=25):
-    glove_file = "../misc/glove_%s.wv" % emb_size
+    #TODO: Only works for glove 25 so far
+    glove_file = GLOVE_25_WV_FILE
     if not os.path.exists(glove_file):
         glove_raw_file = GLOVE_25_FILE
 
