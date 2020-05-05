@@ -3,6 +3,9 @@ import pickle
 import os
 from pathlib import Path
 import warnings
+import string
+from gensim.models import Word2Vec, KeyedVectors
+from gensim.models.callbacks import CallbackAny2Vec
 
 
 class GloveEmbedding:
@@ -94,12 +97,58 @@ class GloveEmbedding:
             word_idx_mapping = pickle.load(f)
         return vector_mapping, word_idx_mapping
 
+
+class CharEmbedding:
+    def __init__(self, X, train=False, training_path=None):
+        model_path = "../misc/character_model.wv"
+        if train:
+            self.train(training_path, model_path)
+        if not os.path.exists(model_path):
+            raise FileNotFoundError("Character embedding model not found. Please run with train=True to create model.")
+        self.X_enc = self.encode(X, model_path)
+
+    # Train character embeddings using external Twitter dataset
+    def train(self, training_path, model_path):
+        with open(training_path, 'r') as f:
+            sentences = [list(x) for x in f.readlines()]
+        model = Word2Vec(sentences, callbacks=[self.callback()])
+        model.wv.save(model_path)
+
+    # Encode our data using above embeddings
+    def encode(self, X, model_path):
+        wv = KeyedVectors.load(model_path)
+        max_len = len(max(X, key=len))
+        encoded_matrix = np.zeros(shape=(len(X), max_len, wv.vector_size))  # Shape: n x num_chars x vec_dim
+        for i in range(len(X)):
+            for j in range(len(X[i])):
+                char_enc = wv[X[i][j]]
+                encoded_matrix[i, j] = char_enc
+        return encoded_matrix
+
+    class callback(CallbackAny2Vec):
+        '''Callback to print loss after each epoch.'''
+
+        def __init__(self):
+            self.epoch = 0
+
+        def on_epoch_end(self, model):
+            loss = model.get_latest_training_loss()
+            print('Loss after epoch {}: {}'.format(self.epoch, loss))
+            self.epoch += 1
+
+
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
-    type = 'glove'
-    ds = Dataset(type)
-    emb = GloveEmbedding(ds.X, type=type)
 
-    print(emb.corpus_vectors.shape)
-    print(emb.corpus[0])
-    print(emb.corpus_vectors[0])
+    # Test GloveEmbedding
+    # type = 'glove'
+    # ds = Dataset(type)
+    # emb = GloveEmbedding(ds.X, type=type)
+    #
+    # print(emb.corpus_vectors.shape)
+    # print(emb.corpus[0])
+    # print(emb.corpus_vectors[0])
+
+    # Test OneHotCharEmbedding
+    ds = Dataset('char')
+    emb = CharEmbedding(ds.X, train=True, training_path="../data/training.1600000.processed.noemoticon.csv")

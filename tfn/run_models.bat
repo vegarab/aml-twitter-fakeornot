@@ -6,5 +6,4 @@ FOR /L %%N IN (1, 1, 5) DO (
   python models/random_forest.py -x
   python models/svm.py -x
   python models/lstm.py -x
-
 )
