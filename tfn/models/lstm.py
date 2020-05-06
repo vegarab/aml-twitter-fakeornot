@@ -12,7 +12,7 @@ class LSTM(nn.Module):
         super(LSTM, self).__init__()
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
                             bidirectional=True, batch_first=True)
-        self.fc = nn.Linear(2*hidden_size*seq_length, output_size)
+        self.fc = nn.Linear(2 * hidden_size * seq_length, output_size)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
@@ -33,11 +33,12 @@ class LSTMModel(Model):
         super().__init__()
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-        hidden_dim = 50 #Size of memory
+        hidden_dim = 50  # Size of memory
         num_layers = 2  # No. of layers
         output_dim = 1  # Output dimension
 
-        self.model = LSTM(input_size=num_features, seq_length=seq_length, hidden_size=hidden_dim, output_size=output_dim,
+        self.model = LSTM(input_size=num_features, seq_length=seq_length, hidden_size=hidden_dim,
+                          output_size=output_dim,
                           num_layers=num_layers)
         self.model.double()
         if self.device == "cuda:0":
@@ -45,22 +46,20 @@ class LSTMModel(Model):
 
         self.batch_size = 20
 
-    def fit(self, X, y, epochs=5):
+    def fit(self, X, y, epochs=5, lr=0.01, momentum=0.2):
         self.model.train()
-        learning_rate = 0.01
-        momentum = 0.2
 
-        optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
+        optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=momentum)
         criterion = nn.BCELoss()
 
-        val_prop = 0.1 # proportion of data used for validation
-        train_size = int((1-val_prop) * X.shape[0])
+        val_prop = 0.1  # proportion of data used for validation
+        train_size = int((1 - val_prop) * X.shape[0])
         train_data = TensorDataset(torch.tensor(X[:train_size], device=self.device),
                                    torch.tensor(y[:train_size], device=self.device)
-            )
+                                   )
         val_data = TensorDataset(torch.tensor(X[train_size:], device=self.device),
-                                   torch.tensor(y[train_size:], device=self.device)
-            )
+                                 torch.tensor(y[train_size:], device=self.device)
+                                 )
 
         train_loader = DataLoader(train_data, batch_size=self.batch_size, shuffle=True)
         val_loader = DataLoader(val_data, batch_size=self.batch_size, shuffle=True)
@@ -92,12 +91,12 @@ class LSTMModel(Model):
             # If last learning rate drop happened more than 5 epochs to go and the current training loss
             # is higher than 99.9% of the previous, then half the learning rate.
             if epoch - 5 > last_lr_drop and (training_loss / prev_training_loss) > 0.999:
-                learning_rate /= 2
+                lr /= 2
                 last_lr_drop = epoch
                 print("Learning rate halved.")
 
             # End early if lr falls too low
-            if learning_rate < 0.0001:
+            if lr < 0.0001:
                 break
             prev_training_loss = training_loss
 
@@ -145,7 +144,7 @@ if __name__ == "__main__":
     if args.type == "glove":
         emb_size = args.emb_size
     else:
-        emb_size = 300
+        emb_size = 100
 
     # Get data GLoVe
     # data = Dataset(args.type)

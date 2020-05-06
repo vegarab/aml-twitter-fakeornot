@@ -1,7 +1,7 @@
 from tfn.preprocess import Dataset
 from tfn.helper import export_results
 from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
-from tfn.models import CosineSimilarity, Dummy, KNN, LSTMModel, Naive_Bayes, RandomForest, SVM
+from tfn.models import CosineSimilarity, Dummy, KNN, LSTMModel, Naive_Bayes, RandomForest, SVM, GradientBoost
 from tfn import AUG_PATH
 from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 from numpy.random import permutation
@@ -90,7 +90,8 @@ if __name__ == "__main__":
         'kNN': KNN(),
         'Naive Bayes': Naive_Bayes(),
         'Random Forest': RandomForest(),
-        'SVM': SVM()
+        'SVM': SVM(),
+        'Gradient Boosting': GradientBoost()
     }
 
     for model in models:
