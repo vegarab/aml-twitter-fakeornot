@@ -16,6 +16,7 @@ class RandomForest(Model):
         y_pred = self.clf.predict(X_emb)
         return y_pred
 
+
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
     from tfn.helper import export_results

@@ -7,7 +7,7 @@ from tfn.helper import _get_glove_embeddings
 
 class AugmentWithEmbeddings:
     def __init__(self, X, y, replace_pr=0.25, num_copies=5):
-        self.glove_emb = _get_glove_embeddings()
+        # self.glove_emb = _get_glove_embeddings()
         self.X_aug = []
         self.y_aug = []
         for i in range(len(X)):
@@ -20,8 +20,8 @@ class AugmentWithEmbeddings:
                 new_sentence = []
                 for word in sentence:
                     if random.random() < replace_pr:
-                        new_word = self.replace_word(word)
-                        # new_word = word
+                        # new_word = self.replace_word(word)
+                        new_word = word
                     else:
                         new_word = word
                     new_sentence.append(new_word)
