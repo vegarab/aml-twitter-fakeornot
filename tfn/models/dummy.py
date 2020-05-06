@@ -9,7 +9,7 @@ from collections import Counter
 
 class Dummy(Model):
     def fit(self, X, y):
-        self.dummy_pred = sorted(Counter(data.y).items(), key=lambda x: x[1], reverse=True)[0][0]
+        self.dummy_pred = sorted(Counter(y).items(), key=lambda x: x[1], reverse=True)[0][0]
 
     def predict(self, X):
         y_pred = [self.dummy_pred]*len(X)
@@ -44,4 +44,4 @@ if __name__ == '__main__':
     print('Dummy F1:', round(f1, 4))
 
     if args.export:
-        export_results(acc=acc, roc=roc, f1=f1)
+        export_results(name='Dummy', acc=acc, roc=roc, f1=f1)
