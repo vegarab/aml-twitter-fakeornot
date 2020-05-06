@@ -24,7 +24,7 @@ class AugmentWithEmbeddings:
                     else:
                         new_word = word
                     new_sentence.append(new_word)
-                print(sentence, new_sentence)
+                # print(sentence, new_sentence)
                 self.X_aug.append(new_sentence)
                 self.y_aug.append(y[i])
 
