@@ -10,7 +10,6 @@ import spacy
 from spellchecker import SpellChecker
 
 from nltk.tokenize import TweetTokenizer
-from nltk.corpus import stopwords
 
 from sklearn.model_selection import train_test_split
 
@@ -18,7 +17,7 @@ from spacy.lemmatizer import Lemmatizer
 
 from tfn import TRAIN_FILE
 from tfn.clean import clean
-from tfn.helper import _get_training_data_from_csv
+from tfn.helper import _get_training_data_from_csv, _get_stop_words
 
 
 _TRAIN_DATA_PATH = TRAIN_FILE
@@ -71,15 +70,7 @@ def split_binary_classes(X, y):
             x1.append(x)
             y1.append(y[i])
 
-
     return x0, y0, x1, y1
-
-def _get_stop_words(strip_handles, strip_rt):
-    ''' Returns stopwords '''
-    stop_words = (stopwords.words('english'))
-    if strip_rt: stop_words += ['rt']
-    # TODO: if strip_handles
-    return set(stop_words)
 
 
 def _has_digits(token):
@@ -135,7 +126,7 @@ class Dataset():
             doc = clean(doc)
 
             # Replace hashtag with <hashtag> token as is encoded in GLoVe
-            doc = doc.replace('#', '<hashtag> ')
+            # doc = doc.replace('#', '<hashtag> ')
 
             # Tokenize the document.
             tokens = [lemmatize(token.text, token.pos_)[0].lower() for token in en(doc)]

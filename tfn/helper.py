@@ -4,6 +4,7 @@ import os
 import pandas as pd
 from gensim.models import KeyedVectors
 from gensim.scripts.glove2word2vec import glove2word2vec
+from nltk.corpus import stopwords
 
 from tfn import TRAIN_FILE, GLOVE_FILE, GLOVE_WV_FILE, RESULTS_FILE
 
@@ -19,6 +20,14 @@ def export_results(name, acc, roc, f1):
     with open(RESULTS_FILE, 'a') as f:
         writer = csv.writer(f)
         writer.writerow(fields)
+
+
+def _get_stop_words(strip_handles, strip_rt):
+    ''' Returns stopwords '''
+    stop_words = (stopwords.words('english'))
+    if strip_rt: stop_words += ['rt']
+    # TODO: if strip_handles
+    return set(stop_words)
 
 
 def _get_glove_embeddings(emb_size=25):
