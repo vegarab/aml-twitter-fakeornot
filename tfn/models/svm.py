@@ -6,12 +6,10 @@ import numpy as np
 
 
 class SVM(Model):
-    def __init__(self):
-        super().__init__()
-        self.clf = SVC(kernel='rbf')
-
     def fit(self, X, y):
         self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
+
+        self.clf = SVC(kernel='rbf')
         self.clf.fit(self.corpus_matrix, y)
 
     def predict(self, X):

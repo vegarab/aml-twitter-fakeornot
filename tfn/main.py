@@ -3,7 +3,6 @@ from tfn.helper import export_results
 from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
 from tfn.models import CosineSimilarity, Dummy, KNN, LSTMModel, Naive_Bayes, RandomForest, SVM
 from tfn import AUG_PATH
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 from numpy.random import permutation
 from argparse import ArgumentParser
@@ -42,75 +41,76 @@ def _train_test_val_aug_split(data, aug_data, num_copies, test_prop, val_prop):
     return X_aug, y_aug, X_train, y_train, X_val, y_val, X_test, y_test
 
 
-parser = ArgumentParser()
-parser.add_argument("--save-aug", "-s", dest="save_aug", default=None,
-                    help="Name of augmentation save path. It is recommended that augmentation is saved whenever "
-                         "run as this can take a very long time.")
-parser.add_argument("--load-aug", "-l", dest="load_aug", default=None,
-                    help="Name of augmentation load path. It is recommended that augmentation is loaded from pre-made"
-                         "file as re-running can take a very long time.")
-parser.add_argument("--aug-copies", "-c", dest="aug_copies", default=5, type=int,
-                    help="Number of copies of the data made by augmentation (does nothing if augmentation loaded "
-                         "from file).")
-parser.add_argument("--test-prop", "-t", dest="test_prop", default=0.2, type=float,
-                    help="Proportion of data used for testing.")
-parser.add_argument("--val-prop", "-v", dest="val_prop", default=0.2, type=float,
-                    help="Proportion of data used for validation.")
-parser.add_argument("--no-export", "-n", dest="no_export", action="store_false",
-                    help="Results of running will not be stored in results.csv.")
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--save-aug", "-s", dest="save_aug", default=None,
+                        help="Name of augmentation save path. It is recommended that augmentation is saved whenever "
+                             "run as this can take a very long time.")
+    parser.add_argument("--load-aug", "-l", dest="load_aug", default=None,
+                        help="Name of augmentation load path. It is recommended that augmentation is loaded from "
+                             "pre-made file as re-running can take a very long time.")
+    parser.add_argument("--aug-copies", "-c", dest="aug_copies", default=5, type=int,
+                        help="Number of copies of the data made by augmentation (does nothing if augmentation loaded "
+                             "from file).")
+    parser.add_argument("--test-prop", "-t", dest="test_prop", default=0.2, type=float,
+                        help="Proportion of data used for testing.")
+    parser.add_argument("--val-prop", "-v", dest="val_prop", default=0.2, type=float,
+                        help="Proportion of data used for validation.")
+    parser.add_argument("--no-export", "-n", dest="no_export", action="store_false",
+                        help="Results of running will not be stored in results.csv.")
+    args = parser.parse_args()
 
-data_t = Dataset('twitter')
+    data_t = Dataset('twitter')
 
-# Load augmentation data
-if args.load_aug:
-    with open(AUG_PATH / args.load_aug, 'rb') as aug_file:
-        num_copies, aug_t = pickle.load(aug_file)
-else:
-    # Run data augmentation (takes a long time)
-    num_copies = args.aug_copies
-    aug_t = AugmentWithEmbeddings(data_t.X, data_t.y, num_copies=num_copies)
-    if args.save_aug:
-        with open(AUG_PATH / args.save_aug, 'wb') as aug_file:
-            pickle.dump((num_copies, aug_t), aug_file)
+    # Load augmentation data
+    if args.load_aug:
+        with open(AUG_PATH / args.load_aug, 'rb') as aug_file:
+            num_copies, aug_t = pickle.load(aug_file)
+    else:
+        # Run data augmentation (takes a long time)
+        num_copies = args.aug_copies
+        aug_t = AugmentWithEmbeddings(data_t.X, data_t.y, num_copies=num_copies)
+        if args.save_aug:
+            with open(AUG_PATH / args.save_aug, 'wb') as aug_file:
+                pickle.dump((num_copies, aug_t), aug_file)
 
-# Assert train/test/validation proportions
-test_prop = args.test_prop
-val_prop = args.val_prop
-X_aug_t, y_aug_t, X_train_t, y_train_t, X_val_t, y_val_t, X_test_t, y_test_t = _train_test_val_aug_split(
-    data_t, aug_t, num_copies, test_prop, val_prop
-)
+    # Assert train/test/validation proportions
+    test_prop = args.test_prop
+    val_prop = args.val_prop
+    X_aug_t, y_aug_t, X_train_t, y_train_t, X_val_t, y_val_t, X_test_t, y_test_t = _train_test_val_aug_split(
+        data_t, aug_t, num_copies, test_prop, val_prop
+    )
 
-# Declare all models to be tested
-models = {
-    'Dummy': Dummy(),
-    'Cosine Similarity': CosineSimilarity(),
-    'kNN': KNN(),
-    'Naive Bayes': Naive_Bayes(),
-    'Random Forest': RandomForest(),
-    'SVM': SVM()
-}
+    # Declare all models to be tested
+    models = {
+        'Dummy': Dummy(),
+        'Cosine Similarity': CosineSimilarity(),
+        'kNN': KNN(),
+        'Naive Bayes': Naive_Bayes(),
+        'Random Forest': RandomForest(),
+        'SVM': SVM()
+    }
 
-for model in models:
-    for aug in [True, False]:
-        if aug:
-            models[model].fit(X_aug_t, y_aug_t)
-            name = model + " (aug)"
-        else:
-            models[model].fit(X_train_t, y_train_t)
-            name = model
-        y_pred = models[model].predict(X_test_t)
+    for model in models:
+        for aug in [True, False]:
+            if aug:
+                models[model].fit(X_aug_t, y_aug_t)
+                name = model + " (aug)"
+            else:
+                models[model].fit(X_train_t, y_train_t)
+                name = model
+            y_pred = models[model].predict(X_test_t)
 
-        acc = accuracy_score(y_test_t, y_pred)
-        roc = roc_auc_score(y_test_t, y_pred)
-        f1 = f1_score(y_test_t, y_pred)
+            acc = accuracy_score(y_test_t, y_pred)
+            roc = roc_auc_score(y_test_t, y_pred)
+            f1 = f1_score(y_test_t, y_pred)
 
-        print('%s accuracy: %s' % (name, round(acc, 4)))
-        print('%s AUC: %s' % (name, round(roc, 4)))
-        print('%s F1: %s' % (name, round(f1, 4)))
+            print('%s accuracy: %s' % (name, round(acc, 4)))
+            print('%s AUC: %s' % (name, round(roc, 4)))
+            print('%s F1: %s' % (name, round(f1, 4)))
 
-        if not args.no_export:
-            export_results(name=name, acc=acc, roc=roc, f1=f1)
+            if not args.no_export:
+                export_results(name=name, acc=acc, roc=roc, f1=f1)
 
 # data_glove = Dataset('glove')
 # X_train_g, X_test_g, y_train_g, y_test_g = train_test_split(data.X, data.y)
