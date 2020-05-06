@@ -52,6 +52,8 @@ if __name__ == "__main__":
     parser.add_argument("--aug-copies", "-c", dest="aug_copies", default=5, type=int,
                         help="Number of copies of the data made by augmentation (does nothing if augmentation loaded "
                              "from file).")
+    parser.add_argument("--repl-prob", "-r", dest="repl_prob", default=0.25, type=float,
+                        help="Chance that a word is replaced during augmentation.")
     parser.add_argument("--test-prop", "-t", dest="test_prop", default=0.2, type=float,
                         help="Proportion of data used for testing.")
     parser.add_argument("--val-prop", "-v", dest="val_prop", default=0.2, type=float,
@@ -69,7 +71,7 @@ if __name__ == "__main__":
     else:
         # Run data augmentation (takes a long time)
         num_copies = args.aug_copies
-        aug_t = AugmentWithEmbeddings(data_t.X, data_t.y, num_copies=num_copies)
+        aug_t = AugmentWithEmbeddings(data_t.X, data_t.y, num_copies=num_copies, replace_pr=args.repl_prob)
         if args.save_aug:
             with open(AUG_PATH / args.save_aug, 'wb') as aug_file:
                 pickle.dump((num_copies, aug_t), aug_file)
