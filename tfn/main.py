@@ -84,10 +84,10 @@ if __name__ == "__main__":
     # Declare all models to be tested
     models = {
         'Dummy': Dummy(),
-        # 'Cosine Similarity': CosineSimilarity(),
-        # 'kNN': KNN(),
-        # 'Naive Bayes': Naive_Bayes(),
-        # 'Random Forest': RandomForest(),
+        'Cosine Similarity': CosineSimilarity(),
+        'kNN': KNN(),
+        'Naive Bayes': Naive_Bayes(),
+        'Random Forest': RandomForest(),
         'SVM': SVM()
     }
 
