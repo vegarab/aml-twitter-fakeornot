@@ -11,7 +11,8 @@ class AugmentWithEmbeddings:
         self.X_aug = []
         self.y_aug = []
         for i in range(len(X)):
-            print("Augmentation %s%% complete..." % (100*i // len(X)))
+            if i % 100 == 0:
+                print("Augmentation %s%% complete..." % (100*i // len(X)))
             sentence = X[i]
             self.X_aug.append(sentence)
             self.y_aug.append(y[i])
