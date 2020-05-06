@@ -22,7 +22,7 @@ def export_results(name, acc, roc, f1):
         writer.writerow(fields)
 
 
-def _get_stop_words(strip_handles, strip_rt):
+def _get_stop_words(strip_handles=False, strip_rt=False):
     ''' Returns stopwords '''
     stop_words = (stopwords.words('english'))
     if strip_rt: stop_words += ['rt']
