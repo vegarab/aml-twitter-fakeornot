@@ -2,7 +2,7 @@ import pandas as pd
 import random
 import re
 
-from tfn.helper import _get_glove_embeddings
+from tfn.helper import _get_glove_embeddings, _get_stop_words
 
 
 class AugmentWithEmbeddings:
@@ -10,6 +10,7 @@ class AugmentWithEmbeddings:
         self.glove_emb = _get_glove_embeddings()
         self.X_aug = []
         self.y_aug = []
+        stopwords = _get_stop_words()
         for i in range(len(X)):
             if i % 100 == 0:
                 print("Augmentation %s%% complete..." % (100*i // len(X)))
@@ -19,7 +20,9 @@ class AugmentWithEmbeddings:
             for _ in range(num_copies):
                 new_sentence = []
                 for word in sentence:
-                    if random.random() < replace_pr:
+                    if word in stopwords:
+                        new_word = word
+                    elif random.random() < replace_pr:
                         new_word = self.replace_word(word)
                         # new_word = word
                     else:
