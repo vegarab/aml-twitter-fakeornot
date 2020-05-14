@@ -118,14 +118,26 @@ def clean(tweet):
     tweet = re.sub(r"Haven't", "Have not", tweet)
     tweet = re.sub(r"Could've", "Could have", tweet)
     tweet = re.sub(r"youve", "you have", tweet)  
-    tweet = re.sub(r"donå«t", "do not", tweet)   
-            
+    tweet = re.sub(r"donå«t", "do not", tweet)
+    tweet = re.sub(r"we'll", "we will", tweet)
+    tweet = re.sub(r"it'd", "it would", tweet)
+    tweet = re.sub(r"who'd", "who had", tweet)
+    tweet = re.sub(r"we'd", "we would", tweet)
+    tweet = re.sub(r"they'll", "they will", tweet)
+    tweet = re.sub(r"she'd", "she would", tweet)
+    tweet = re.sub(r"i've", "I have", tweet)
+    tweet = re.sub(r"u'd", "you would", tweet)
+    tweet = re.sub(r"can't", "cannot", tweet)
+    tweet = re.sub(r"let's", "let us", tweet)
+    tweet = re.sub(r"must've", "must have", tweet)
+
     # Character entity references
     tweet = re.sub(r"&gt;", ">", tweet)
     tweet = re.sub(r"&lt;", "<", tweet)
     tweet = re.sub(r"&amp;", "&", tweet)
     
     # Typos, slang and informal abbreviations
+    tweet = re.sub(r"gov't", "government", tweet)
     tweet = re.sub(r"w/e", "whatever", tweet)
     tweet = re.sub(r"w/", "with", tweet)
     tweet = re.sub(r"USAgov", "USA government", tweet)
