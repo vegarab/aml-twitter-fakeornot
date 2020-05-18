@@ -14,7 +14,7 @@ from sklearn.svm import SVC
 import numpy as np
 from tfn.feature_extraction.tf_idf import get_tfidf_model
 from tfn.feature_extraction import embedding
-from tfn.logging import log_sk_model
+from tfn.logger import log_sk_model
 import time
 from tqdm import tqdm
 
@@ -85,9 +85,9 @@ if __name__ == "__main__":
 
     # Run SK models with hyperparameter search...
     for model_type in models:
-        pbar = tqdm(total=args.n_calls)
         t1 = time.time()
         print(f"Processing model {model_type}")
+        pbar = tqdm(total=args.n_calls)
         space = models[model_type]().space
         model = models[model_type]
 
