@@ -3,6 +3,8 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, TensorDataset
 
 import time
+import numpy as np
+import matplotlib.pyplot as plt
 
 from tfn.models.model import Model
 
@@ -65,10 +67,17 @@ class LSTMModel(Model):
         val_loader = DataLoader(val_data, batch_size=self.batch_size, shuffle=True)
         last_lr_drop = 0
         prev_training_loss = 999_999
+
+        val_losses =  np.ndarray(epochs)
+        val_accs = np.ndarray(epochs)
+        train_losses = np.ndarray(epochs)
+        train_accs = np.ndarray(epochs)
         for epoch in range(epochs):
             print("Epoch: %s" % epoch)
             training_loss = 0
+            train_acc = []
             val_loss = 0
+            val_acc = []
             for i, (X_train, y_train) in enumerate(train_loader):
                 if i % 100 == 0:
                     print("Epoch progress: %s%%" % int(100 * i / len(train_loader)))
@@ -79,14 +88,30 @@ class LSTMModel(Model):
                 loss.backward()
                 optimizer.step()
 
+                # Convert to integer predictions
+                y_pred = np.where(y_pred.cpu().detach().numpy() > 0.5, 1, 0)
+
+                train_acc.append(accuracy_score(y_train.cpu().detach().numpy(), y_pred))
+
+            train_accs[epoch] = sum(train_acc)/len(train_acc)
+
             for (X_val, y_val) in val_loader:
                 y_pred = self.model(X_val)
                 loss = criterion(y_pred, y_val.double())
                 val_loss += (loss.item() / len(val_data))
 
+                # Convert to integer predictions
+                y_pred = np.where(y_pred.cpu().detach().numpy() > 0.5, 1, 0)
+                val_acc.append(accuracy_score(y_val.cpu().detach().numpy(), y_pred))
+
+            val_accs[epoch] = sum(val_acc)/len(val_acc)
+
             print('Training Loss: %.4g' % training_loss)
+            train_losses[epoch] = training_loss
             print('Validation Loss: %.4g' % val_loss)
+            val_losses[epoch] = val_loss
             print('Loss / Prev : %s' % (training_loss / prev_training_loss))
+            
 
             # If last learning rate drop happened more than 5 epochs to go and the current training loss
             # is higher than 99.9% of the previous, then half the learning rate.
@@ -101,8 +126,13 @@ class LSTMModel(Model):
             prev_training_loss = training_loss
 
         # Save model
-        save_path = '../misc/model_save_%s' % time.time()
-        torch.save(self.model.state_dict(), save_path)
+        try:
+            save_path = '../misc/model_save_%s' % time.time()
+            torch.save(self.model.state_dict(), save_path)
+        except Exception as e:
+            print("Could not save file:", e)
+
+        return train_losses, train_accs, val_losses, val_accs
 
     def predict(self, X):
         self.model.eval()
@@ -120,6 +150,17 @@ class LSTMModel(Model):
         return predictions
 
 
+def visualize_training(hist1, label1, hist2, label2, xlabel, ylabel, filepath):
+    plt.figure(figsize=(8,8))
+    plt.plot(hist1, label=label1)
+    plt.plot(hist2, label=label2)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.legend()
+    plt.savefig(filepath)
+    plt.show()
+
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
     from tfn.helper import export_results
@@ -136,35 +177,37 @@ if __name__ == "__main__":
     parser.add_argument("--emb-size", "-s", dest="emb_size", default=50, type=int,
                         help="Size of word embedding vectors (must be in 25, 50, 100, 200).")
     parser.add_argument("--emb-type", "-t", dest="type", default="glove", type=str,
-                        help="Embedding type. Can be 'word' or 'char'.")
+                        help="Embedding type. Can be 'glove' or 'char'.")
     parser.add_argument("-x", "--export-results", dest="export", action='store_true',
                         help="Exports results to results.csv")
     args = parser.parse_args()
 
     if args.type == "glove":
         emb_size = args.emb_size
-    else:
+        data = Dataset(args.type)
+        emb = GloveEmbedding(data.X, emb_size=emb_size, type=args.type)
+        X = emb.corpus_vectors
+        y = np.array(data.y)
+    elif args.type == "char":
+        data = Dataset(args.type)
+        emb = CharEmbedding(data.X)
+        X = emb.X_enc
+        y = np.array(data.y)
         emb_size = 100
-
-    # Get data GLoVe
-    # data = Dataset(args.type)
-    # emb = GloveEmbedding(data.X, emb_size=emb_size, type=args.type)
-    # X = emb.corpus_vectors
-    # y = np.array(data.y)
-
-    # Get data char emb
-    data = Dataset(args.type)
-    emb = CharEmbedding(data.X)
-    X = emb.X_enc
-    y = np.array(data.y)
-    emb_size = 100
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True)
 
     # print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
     lstm = LSTMModel(num_features=emb_size, seq_length=X.shape[1])
-    lstm.fit(X_train, y_train, epochs=args.epochs)
+    train_losses, train_accs, val_losses, val_accs = lstm.fit(X_train, y_train, epochs=args.epochs)
+
+    visualize_training(train_losses, 'Training loss', 
+                       val_losses, 'Validation loss',
+                       'Epochs', 'Binary Cross-entropy Loss', 'loss_lstm.png')
+    visualize_training(train_accs, 'Training accuracy', 
+                       val_accs, 'Validation accuracy',
+                       'Epochs', 'Prediction Accuracy', 'acc_lstm.png')
 
     y_pred = lstm.predict(X_test)
 

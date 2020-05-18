@@ -83,7 +83,8 @@ class Dataset():
                                   strip_rt=True, 
                                   strip_digits=True,
                                   strip_hashtags=False,
-                 test_size=0.3):
+                                  test_size=0.1,
+                                  shuffle=False):
 
         # Get raw data
         self.corpus, self.y = _get_training_data_from_csv()
@@ -109,7 +110,9 @@ class Dataset():
                                + "'char' as possible tokenizers")
 
         # Might be betteer to save splitting for outside the dataset so as to preserve the order of entries?
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=test_size)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, 
+                                                                                test_size=test_size,
+                                                                                shuffle=shuffle)
 
     def _tokenize_with_lemma(self, corpus, strip_handles=True, strip_rt=True, strip_digits=True):
         ''' Tokenize and lemmatize using Spacy '''
