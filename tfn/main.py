@@ -70,7 +70,7 @@ if __name__ == "__main__":
                         help="Proportion of data used for validation.")
     parser.add_argument("--no-export", "-x", dest="no_export", action="store_false",
                         help="Results of running will not be stored in results.csv.")
-    parser.add_argument("--n-calls", "-n", dest="n_calls", default=20,
+    parser.add_argument("--n-calls", "-n", dest="n_calls", default=20, type=int,
                         help="Number of calls to each model for Bayesian optimisation.")
     args = parser.parse_args()
 
