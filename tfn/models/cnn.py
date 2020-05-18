@@ -19,11 +19,12 @@ N_FILTERS = 100
 FILTER_SIZES = [3, 4, 5]
 OUTPUT_DIM = 1
 DROPOUT = 0.5
-BATCH_SIZE=128
+BATCH_SIZE = 128
+EMBEDDING_DIM = 50
 
 
 class CNN(nn.Module):
-    def __init__(self, n_filters, filter_sizes, output_dim, dropout):
+    def __init__(self, embedding_dim, n_filters, filter_sizes, output_dim, dropout):
         super().__init__()
 
         self.convs = nn.ModuleList([
@@ -123,11 +124,11 @@ if __name__ == '__main__':
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 
     data = Dataset("glove")
-    embedding = GloveEmbedding(data.X, emb_size=50, type="glove")
+    embedding = GloveEmbedding(data.X, emb_size=EMBEDDING_DIM, type="glove")
     X = embedding.corpus_vectors
     y = np.array(data.y)
 
-    cnn = CNNModel(N_FILTERS, FILTER_SIZES, OUTPUT_DIM, DROPOUT, BATCH_SIZE)
+    cnn = CNNModel(EMBEDDING_DIM, N_FILTERS, FILTER_SIZES, OUTPUT_DIM, DROPOUT, BATCH_SIZE)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True)
 
