@@ -154,8 +154,9 @@ if __name__ == "__main__":
 
     # Get data char emb
     data = Dataset(args.type)
-    emb = CharEmbedding(data.X)
-    X = emb.X_enc
+    emb = GloveEmbedding(data.X, emb_size=100, type=args.type)
+    X = emb.corpus_vectors
+    print(X.shape)
     y = np.array(data.y)
     emb_size = 100
 

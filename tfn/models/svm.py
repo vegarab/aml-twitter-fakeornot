@@ -2,12 +2,20 @@ from tfn.models.model import Model
 from tfn.feature_extraction.tf_idf import get_tfidf_model
 from sklearn.svm import SVC
 
+from skopt.utils import Real, Integer, Categorical
+
 
 class SVM(Model):
+    def __init__(self, **params):
+        self.params = params
+        self.space = [Real(1e-6, 1e+6, "log-uniform", name='C'),
+                      Real(1e-6, 1e+1, "log-uniform", name='gamma'),
+                      Integer(1, 8, name='degree'),
+                      Categorical(['linear', 'poly', 'rbf'], name='kernel')]
+        self.clf = SVC(**self.params)
+
     def fit(self, X, y):
         self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
-
-        self.clf = SVC(kernel='rbf', gamma='scale')
         self.clf.fit(self.corpus_matrix, y)
 
     def predict(self, X):
@@ -15,6 +23,9 @@ class SVM(Model):
         y_pred = self.clf.predict(X_trans)
 
         return y_pred
+
+    def get_params(self, **kwargs):
+        return self.clf.get_params(**kwargs)
 
 
 if __name__ == '__main__':

@@ -18,9 +18,10 @@ class GradientBoost(Model):
         D_test = xgb.DMatrix(X_trans)
         y_pred = self.clf.predict(D_test)
 
-        # COnvert to binary output
+        # Convert to binary output
         y_pred = (y_pred > 0.5).astype(int)
         return y_pred
+
 
 if __name__ == "__main__":
     from tfn.preprocess import Dataset

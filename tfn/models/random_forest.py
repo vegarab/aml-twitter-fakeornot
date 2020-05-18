@@ -3,18 +3,31 @@ from tfn.feature_extraction.tf_idf import get_tfidf_model
 from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
 
 from sklearn.ensemble import RandomForestClassifier
+from skopt.utils import Real, Integer, Categorical
 
 class RandomForest(Model):
+    def __init__(self, **params):
+        self.params = params
+        self.space = (Categorical([True, False], name='bootstrap'),
+                      Integer(10, 100, "log-uniform", name='max_depth'),
+                      Categorical(['auto', 'sqrt'], name='max_features'),
+                      Integer(1, 4, "log-uniform", name='min_samples_leaf'),
+                      Integer(2, 5, "log-uniform", name='min_samples_split'),
+                      Integer(200, 2000, "log-uniform", name='n_estimators'))
+
+        self.clf = RandomForestClassifier(**self.params)
+
     def fit(self, X, y):
         self.vectorizer, self.X_vectorized, _ = get_tfidf_model(X)
-
-        self.clf = RandomForestClassifier()
         self.clf.fit(self.X_vectorized, y)
 
     def predict(self, X):
         X_emb = self.vectorizer.transform(X)
         y_pred = self.clf.predict(X_emb)
         return y_pred
+
+    def get_params(self, **kwargs):
+        return self.clf.get_params(**kwargs)
 
 
 if __name__ == '__main__':

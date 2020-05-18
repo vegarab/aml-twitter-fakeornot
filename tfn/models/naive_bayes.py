@@ -1,14 +1,18 @@
 from tfn.models.model import Model
 from tfn.preprocess import split_binary_classes
 from tfn.feature_extraction.tf_idf import get_tfidf_model
-from sklearn import model_selection, naive_bayes
+from sklearn.naive_bayes import MultinomialNB
+from skopt.utils import Real
 
 class Naive_Bayes(Model):
+    def __init__(self, **params):
+        self.params = params
+        self.space = [Real(0, 1, 'log-uniform', name='alpha')]
+        self.clf = MultinomialNB(**self.params)
+
+
     def fit(self, X, y):
-
         self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
-
-        self.clf = naive_bayes.MultinomialNB()
         self.clf.fit(self.corpus_matrix, y)
     
     def predict(self, X):

@@ -6,7 +6,17 @@ from tfn import AUG_PATH
 from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
 from numpy.random import permutation
 from argparse import ArgumentParser
-import pickle
+
+from skopt import gp_minimize
+from skopt.utils import use_named_args
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.svm import SVC
+import numpy as np
+from tfn.feature_extraction.tf_idf import get_tfidf_model
+from tfn.feature_extraction import embedding
+from tfn.logging import log_sk_model
+import time
+from tqdm import tqdm
 
 
 def _train_test_val_aug_split(data, aug_data, num_copies, test_prop, val_prop):
@@ -58,62 +68,40 @@ if __name__ == "__main__":
                         help="Proportion of data used for testing.")
     parser.add_argument("--val-prop", "-v", dest="val_prop", default=0.2, type=float,
                         help="Proportion of data used for validation.")
-    parser.add_argument("--no-export", "-n", dest="no_export", action="store_false",
+    parser.add_argument("--no-export", "-x", dest="no_export", action="store_false",
                         help="Results of running will not be stored in results.csv.")
+    parser.add_argument("--n-calls", "-n", dest="n_calls", default=20,
+                        help="Number of calls to each model for Bayesian optimisation.")
     args = parser.parse_args()
 
-    data_t = Dataset('twitter')
-
-    # Load augmentation data
-    if args.load_aug:
-        with open(AUG_PATH / args.load_aug, 'rb') as aug_file:
-            num_copies, aug_t = pickle.load(aug_file)
-    else:
-        # Run data augmentation (takes a long time)
-        num_copies = args.aug_copies
-        aug_t = AugmentWithEmbeddings(data_t.X, data_t.y, num_copies=num_copies, replace_pr=args.repl_prob)
-        if args.save_aug:
-            with open(AUG_PATH / args.save_aug, 'wb') as aug_file:
-                pickle.dump((num_copies, aug_t), aug_file)
-
-    # Assert train/test/validation proportions
-    test_prop = args.test_prop
-    val_prop = args.val_prop
-    X_aug_t, y_aug_t, X_train_t, y_train_t, X_val_t, y_val_t, X_test_t, y_test_t = _train_test_val_aug_split(
-        data_t, aug_t, num_copies, test_prop, val_prop
-    )
-
-    # Declare all models to be tested
     models = {
-        'Dummy': Dummy(),
-        'Cosine Similarity': CosineSimilarity(),
-        'kNN': KNN(),
-        'Naive Bayes': Naive_Bayes(),
-        'Random Forest': RandomForest(),
-        'SVM': SVM(),
-        'Gradient Boosting': GradientBoost()
+        'SVM': SVM,
+        'RandomForest': RandomForest,
+        'kNN': KNN,
+        'NaiveBayes': Naive_Bayes
     }
 
-    for model in models:
-        for aug in [True, False]:
-            if aug:
-                models[model].fit(X_aug_t, y_aug_t)
-                name = model + " (aug)"
-            else:
-                models[model].fit(X_train_t, y_train_t)
-                name = model
-            y_pred = models[model].predict(X_test_t)
+    data = Dataset('twitter')
 
-            acc = accuracy_score(y_test_t, y_pred)
-            roc = roc_auc_score(y_test_t, y_pred)
-            f1 = f1_score(y_test_t, y_pred)
+    # Run SK models with hyperparameter search...
+    for model_type in models:
+        pbar = tqdm(total=args.n_calls)
+        t1 = time.time()
+        print(f"Processing model {model_type}")
+        space = models[model_type]().space
+        model = models[model_type]
 
-            print('%s accuracy: %s' % (name, round(acc, 4)))
-            print('%s AUC: %s' % (name, round(roc, 4)))
-            print('%s F1: %s' % (name, round(f1, 4)))
+        @use_named_args(space)
+        def objective(**params):
+            model = models[model_type](**params)
+            cv = cross_val_score(model, data.X, data.y, cv=5, n_jobs=-1, scoring="f1")
+            cv_mean = np.mean(cv)
+            cv_std = np.std(cv)
+            log_sk_model(model, cv_mean, cv_std, params)
+            pbar.update(1)
+            return -cv_mean
 
-            if not args.no_export:
-                export_results(name=name, acc=acc, roc=roc, f1=f1)
-
-# data_glove = Dataset('glove')
-# X_train_g, X_test_g, y_train_g, y_test_g = train_test_split(data.X, data.y)
+        results = gp_minimize(objective, space, n_calls=args.n_calls)
+        t2 = time.time()
+        pbar.close()
+        print(f"{model_type} done. \nBest avg F1 score (5-fold): {-results.fun}\nTime taken: {t2-t1}")

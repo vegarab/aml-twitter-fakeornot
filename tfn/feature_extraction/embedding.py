@@ -38,7 +38,7 @@ class CharEmbedding:
             self.train(training_path, model_path)
         if not os.path.exists(model_path):
             raise FileNotFoundError("Character embedding model not found. Please run with train=True to create model.")
-        self.X_enc = self.encode(X, model_path)
+        self.corpus_vectors = self.encode(X, model_path)
 
     # Train character embeddings using external Twitter dataset
     def train(self, training_path, model_path, epochs=100):

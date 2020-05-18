@@ -1,3 +1,4 @@
+scikit-optimize
 xgboost
 numpy
 gensim

@@ -2,14 +2,20 @@ from tfn.models.model import Model
 from tfn.feature_extraction.tf_idf import get_tfidf_model
 
 from sklearn.neighbors import KNeighborsClassifier
-
+from skopt.utils import Real, Integer, Categorical
 # Class prediction using k-Nearest Neighbors algorithm
 
 class KNN(Model):
+    def __init__(self, **params):
+        self.params = params
+        self.space = [Integer(1, 30, name='leaf_size'),
+                      Integer(1, 2, name='p'),
+                      Integer(1, 10, name='n_neighbors'),
+                      Categorical(['uniform', 'distance'], name='weights')]
+        self.clf = KNeighborsClassifier(**self.params)
+
     def fit(self, X, y):
         self.vectorizer, self.X_vectorized, _ = get_tfidf_model(X)
-
-        self.clf = KNeighborsClassifier()
         self.clf.fit(self.X_vectorized, y)
 
     def predict(self, X):
@@ -17,6 +23,8 @@ class KNN(Model):
         y_pred = self.clf.predict(X_emb)
         return y_pred
 
+    def get_params(self, **kwargs):
+        return self.clf.get_params(**kwargs)
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
