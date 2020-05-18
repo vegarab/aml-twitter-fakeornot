@@ -8,3 +8,4 @@ vaderSentiment
 gensim
 bs4
 pytorch-pretrained-bert
+transformers
