@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from keras import optimizers
 from keras.models import Sequential
 from keras.layers import Dense, Embedding, LSTM, SpatialDropout1D
 from keras.preprocessing.text import Tokenizer
@@ -8,14 +9,14 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import re
 import os
-
+from tfn import TRAIN_FILE
 
 # Remove some tensorflow messages. Set to 1 if you want all outputs (e.g. to 1
 # see if a GPU is detected for training)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # Read input data from the dataset
-data = pd.read_csv('tfn/data/train.csv', header=0)
+data = pd.read_csv(TRAIN_FILE, header=0)
 data = data[['text','target']]
 
 max_features = 10000
@@ -67,7 +68,7 @@ def build_model():
     model.add(LSTM(lstm_out, dropout=0.2, recurrent_dropout=0.2))
     model.add(Dense(mlp_hidden, activation='relu'))
     model.add(Dense(2, activation='sigmoid'))
-    opt = keras.optimizers.SGD(learning_rate=0.01, momentum=0.2)
+    opt = optimizers.SGD(learning_rate=0.01, momentum=0.2)
     model.compile(loss='categorical_crossentropy', 
                   optimizer=opt, 
                   metrics = ['accuracy'])
