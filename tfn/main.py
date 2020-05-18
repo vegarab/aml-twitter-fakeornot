@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
+
 from tfn.preprocess import Dataset
 from tfn.helper import export_results
 from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
@@ -94,7 +97,7 @@ if __name__ == "__main__":
         @use_named_args(space)
         def objective(**params):
             model = models[model_type](**params)
-            cv = cross_val_score(model, data.X, data.y, cv=5, n_jobs=-1, scoring="f1")
+            cv = cross_val_score(model, data.X, data.y, cv=5, n_jobs=-1, scoring="accuracy")
             cv_mean = np.mean(cv)
             cv_std = np.std(cv)
             log_sk_model(model, cv_mean, cv_std, params)
@@ -104,4 +107,4 @@ if __name__ == "__main__":
         results = gp_minimize(objective, space, n_calls=args.n_calls)
         t2 = time.time()
         pbar.close()
-        print(f"{model_type} done. \nBest avg F1 score (5-fold): {-results.fun}\nTime taken: {t2-t1}")
+        print(f"{model_type} done. \nBest avg accuracy score (5-fold): {-results.fun}\nTime taken: {t2-t1}")
