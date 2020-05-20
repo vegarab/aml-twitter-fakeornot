@@ -1,25 +1,27 @@
 import warnings
-warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
+warnings.filterwarnings(action='ignore',category=UserWarning)
+warnings.filterwarnings(action='ignore',category=FutureWarning)
 
+from tfn import OPT_RESULTS, CHAR_TRAINING_FILE, CHAR_MODEL
+from tfn.feature_extraction import embedding
+from tfn.logger import log_sk_model, log_torch_model
 from tfn.preprocess import Dataset
-from tfn.helper import export_results
-from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
 from tfn.models import CosineSimilarity, Dummy, KNN, LSTMModel, Naive_Bayes, RandomForest, SVM, GradientBoost
-from tfn import AUG_PATH
-from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
+
+import numpy as np
 from numpy.random import permutation
 from argparse import ArgumentParser
-
-from skopt import gp_minimize
-from skopt.utils import use_named_args
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.svm import SVC
-import numpy as np
-from tfn.feature_extraction.tf_idf import get_tfidf_model
-from tfn.feature_extraction import embedding
-from tfn.logger import log_sk_model
 import time
 from tqdm import tqdm
+import os
+import pickle
+from skopt import gp_minimize
+from skopt.utils import use_named_args
+from skopt.callbacks import DeltaYStopper
+from sklearn.model_selection import cross_val_score
+
+
+
 
 
 def _train_test_val_aug_split(data, aug_data, num_copies, test_prop, val_prop):
@@ -73,38 +75,87 @@ if __name__ == "__main__":
                         help="Proportion of data used for validation.")
     parser.add_argument("--no-export", "-x", dest="no_export", action="store_false",
                         help="Results of running will not be stored in results.csv.")
-    parser.add_argument("--n-calls", "-n", dest="n_calls", default=20, type=int,
+    parser.add_argument("--n-calls", "-n", dest="n_calls", default=10, type=int,
                         help="Number of calls to each model for Bayesian optimisation.")
     args = parser.parse_args()
 
     models = {
-        'SVM': SVM,
         'RandomForest': RandomForest,
+        'LSTM': LSTMModel,
+        'SVM': SVM,
         'kNN': KNN,
-        'NaiveBayes': Naive_Bayes
+        'NaiveBayes': Naive_Bayes,
+        'GradientBoost': GradientBoost,
+        'CosineSimilarity': CosineSimilarity
+    }
+    print('Processing datasets...')
+    datasets = {
+        'tfidf': Dataset('twitter'),
+        'glove': Dataset('glove'),
+        'char': Dataset('char')
     }
 
-    data = Dataset('twitter')
+    if not os.path.exists(CHAR_MODEL):
+        embedding.CharEmbedding(None, train=True, training_path=CHAR_TRAINING_FILE, train_only=True)
 
+    # Initialise glove embeddings
+    glove_init = embedding.GloveEmbedding(emb_size=200)
     # Run SK models with hyperparameter search...
+    print('Running non-neural approaches w/ hyperparameter tuning...')
     for model_type in models:
         t1 = time.time()
         print(f"Processing model {model_type}")
         pbar = tqdm(total=args.n_calls)
-        space = models[model_type]().space
         model = models[model_type]
+        space = models[model_type].get_space()
 
-        @use_named_args(space)
-        def objective(**params):
-            model = models[model_type](**params)
-            cv = cross_val_score(model, data.X, data.y, cv=5, n_jobs=-1, scoring="accuracy")
-            cv_mean = np.mean(cv)
-            cv_std = np.std(cv)
-            log_sk_model(model, cv_mean, cv_std, params)
-            pbar.update(1)
-            return -cv_mean
+        if model_type == 'LSTM':
+            @use_named_args(space)
+            def objective(**params):
+                print(params)
+                embedding_type = params['embedding']
+                if embedding_type == 'tfidf':
+                    embedding_size = 1
+                elif embedding_type == 'glove':
+                    embedding_size = glove_init.emb_size
+                else:
+                    embedding_size = 100
+                model_params = params.copy()
+                model_params.pop('embedding', None)
+                X = datasets[embedding_type].X
+                y = datasets[embedding_type].y
+                max_len = len(max(X, key=len))
+                model = models[model_type](num_features=embedding_size, seq_length=max_len, **model_params)
+                model.fit(X, y, epochs=50, embedding_type=embedding_type, glove=glove_init)
+                acc = model.get_val_accuracy()
+                log_torch_model(model, acc, params)
+                pbar.update(1)
+                return -acc
+        else:
+            @use_named_args(space)
+            def objective(**params):
+                print(params)
+                embedding_type = params['embedding']
+                model_params = params.copy()
+                model_params.pop('embedding', None)
+                X = datasets[embedding_type].X
+                y = datasets[embedding_type].y
+                model = models[model_type](**model_params)
+                cv = cross_val_score(model, X, y, cv=5, n_jobs=-1, scoring="accuracy",
+                                     fit_params={'embedding_type': embedding_type, 'glove': glove_init})
+                cv_mean = np.mean(cv)
+                cv_std = np.std(cv)
+                log_sk_model(model, cv_mean, cv_std, params)
+                pbar.update(1)
+                return -cv_mean
 
-        results = gp_minimize(objective, space, n_calls=args.n_calls)
+        results = gp_minimize(objective, space, n_calls=args.n_calls, n_jobs=-1,
+                              callback=DeltaYStopper(0.001, n_best=3))
         t2 = time.time()
         pbar.close()
+        if not os.path.exists(OPT_RESULTS):
+            os.mkdir(OPT_RESULTS)
+        with open(os.path.join(OPT_RESULTS, f"{model_type}-{int(time.time())}"), 'wb') as f:
+            pickle.dump(results, f)
         print(f"{model_type} done. \nBest avg accuracy score (5-fold): {-results.fun}\nTime taken: {t2-t1}")
+

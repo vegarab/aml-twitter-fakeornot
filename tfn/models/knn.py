@@ -1,30 +1,40 @@
 from tfn.models.model import Model
 from tfn.feature_extraction.tf_idf import get_tfidf_model
+from tfn.feature_extraction.embedding import GloveEmbedding, CharEmbedding
 
+import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
 from skopt.utils import Real, Integer, Categorical
-# Class prediction using k-Nearest Neighbors algorithm
+
 
 class KNN(Model):
     def __init__(self, **params):
-        self.params = params
-        self.space = [Integer(1, 30, name='leaf_size'),
-                      Integer(1, 2, name='p'),
-                      Integer(1, 10, name='n_neighbors'),
-                      Categorical(['uniform', 'distance'], name='weights')]
-        self.clf = KNeighborsClassifier(**self.params)
+        self.clf = KNeighborsClassifier(**params)
 
-    def fit(self, X, y):
-        self.vectorizer, self.X_vectorized, _ = get_tfidf_model(X)
-        self.clf.fit(self.X_vectorized, y)
+    def fit(self, X, y, embedding_type='tfidf', glove=None):
+        super(KNN, self).fit(X, y, embedding_type, glove)
+        if self.embedding_type != 'tfidf':
+            self.corpus_matrix = np.sum(self.corpus_matrix, axis=1)
+        self.clf.fit(self.corpus_matrix, y)
+
 
     def predict(self, X):
-        X_emb = self.vectorizer.transform(X)
-        y_pred = self.clf.predict(X_emb)
-        return y_pred
+        super(KNN, self).predict(X)
+        if self.embedding_type != 'tfidf':
+            self.X_transform = np.sum(self.X_transform, axis=1)
+        return self.clf.predict(self.X_transform)
 
     def get_params(self, **kwargs):
         return self.clf.get_params(**kwargs)
+
+    @classmethod
+    def get_space(cls):
+        return [Categorical(['glove', 'char', 'tfidf'], name='embedding'),
+                Integer(1, 30, name='leaf_size'),
+                Integer(1, 2, name='p'),
+                Integer(1, 10, name='n_neighbors'),
+                Categorical(['uniform', 'distance'], name='weights')]
+
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset

@@ -1,6 +1,4 @@
 from tfn.models.model import Model
-from tfn.preprocess import split_binary_classes
-from tfn.feature_extraction.tf_idf import get_tfidf_model
 
 from collections import Counter
 
@@ -12,8 +10,7 @@ class Dummy(Model):
         self.dummy_pred = sorted(Counter(y).items(), key=lambda x: x[1], reverse=True)[0][0]
 
     def predict(self, X):
-        y_pred = [self.dummy_pred]*len(X)
-        return y_pred
+        return [self.dummy_pred]*len(X)
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset

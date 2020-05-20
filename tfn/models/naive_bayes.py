@@ -1,26 +1,36 @@
 from tfn.models.model import Model
-from tfn.preprocess import split_binary_classes
-from tfn.feature_extraction.tf_idf import get_tfidf_model
-from sklearn.naive_bayes import MultinomialNB
-from skopt.utils import Real
+
+import numpy as np
+from sklearn.naive_bayes import GaussianNB
+from skopt.utils import Real, Categorical
+
 
 class Naive_Bayes(Model):
     def __init__(self, **params):
-        self.params = params
-        self.space = [Real(0, 1, 'log-uniform', name='alpha')]
-        self.clf = MultinomialNB(**self.params)
+        self.clf = GaussianNB(**params)
 
-
-    def fit(self, X, y):
-        self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
+    def fit(self, X, y, embedding_type='tfidf', glove=None):
+        super(Naive_Bayes, self).fit(X, y, embedding_type, glove)
+        if self.embedding_type != 'tfidf':
+            self.corpus_matrix = np.sum(self.corpus_matrix, axis=1)
+        else:
+            self.corpus_matrix = self.corpus_matrix.toarray()
         self.clf.fit(self.corpus_matrix, y)
-    
+
     def predict(self, X):
-        X_trans = self.vectorizer.transform(X)
-        y_pred = self.clf.predict(X_trans)
+        super(Naive_Bayes, self).predict(X)
+        if self.embedding_type != 'tfidf':
+            self.X_transform = np.sum(self.X_transform, axis=1)
+        else:
+            self.X_transform = self.X_transform.toarray()
+        return self.clf.predict(self.X_transform)
 
-        return y_pred
+    def get_params(self, **kwargs):
+        return self.clf.get_params(**kwargs)
 
+    @classmethod
+    def get_space(cls):
+        return [Categorical(['glove', 'char', 'tfidf'], name='embedding')]
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset

@@ -1,33 +1,40 @@
 from tfn.models.model import Model
-from tfn.feature_extraction.tf_idf import get_tfidf_model
 from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
 
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from skopt.utils import Real, Integer, Categorical
+from skopt.utils import Integer, Categorical
+from sklearn.model_selection import cross_val_score
+
 
 class RandomForest(Model):
     def __init__(self, **params):
-        self.params = params
-        self.space = (Categorical([True, False], name='bootstrap'),
-                      Integer(10, 100, "log-uniform", name='max_depth'),
-                      Categorical(['auto', 'sqrt'], name='max_features'),
-                      Integer(1, 4, "log-uniform", name='min_samples_leaf'),
-                      Integer(2, 5, "log-uniform", name='min_samples_split'),
-                      Integer(200, 2000, "log-uniform", name='n_estimators'))
+        self.clf = RandomForestClassifier(**params)
 
-        self.clf = RandomForestClassifier(**self.params)
-
-    def fit(self, X, y):
-        self.vectorizer, self.X_vectorized, _ = get_tfidf_model(X)
-        self.clf.fit(self.X_vectorized, y)
+    def fit(self, X, y, embedding_type='tfidf', glove=None):
+        super(RandomForest, self).fit(X, y, embedding_type, glove)
+        if self.embedding_type != 'tfidf':
+            self.corpus_matrix = np.sum(self.corpus_matrix, axis=1)
+        self.clf.fit(self.corpus_matrix, y)
 
     def predict(self, X):
-        X_emb = self.vectorizer.transform(X)
-        y_pred = self.clf.predict(X_emb)
-        return y_pred
+        super(RandomForest, self).predict(X)
+        if self.embedding_type != 'tfidf':
+            self.X_transform = np.sum(self.X_transform, axis=1)
+        return self.clf.predict(self.X_transform)
 
     def get_params(self, **kwargs):
         return self.clf.get_params(**kwargs)
+
+    @classmethod
+    def get_space(cls):
+        return [Categorical(['glove', 'char', 'tfidf'], name='embedding'),
+                Categorical([True, False], name='bootstrap'),
+                Integer(3, 10, "log-uniform", name='max_depth'),
+                Categorical(['auto', 'sqrt'], name='max_features'),
+                Integer(1, 4, "log-uniform", name='min_samples_leaf'),
+                Integer(2, 5, "log-uniform", name='min_samples_split'),
+                Integer(200, 2000, "log-uniform", name='n_estimators')]
 
 
 if __name__ == '__main__':
@@ -45,9 +52,6 @@ if __name__ == '__main__':
     data = Dataset('twitter')
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
 
-    aug = AugmentWithEmbeddings(X_train, y_train)
-    X_train, y_train = aug.X_aug, aug.y_aug
-
     rf = RandomForest()
     rf.fit(X_train, y_train)
 
@@ -57,6 +61,8 @@ if __name__ == '__main__':
     roc = roc_auc_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
 
+    cv = cross_val_score(rf, data.X, data.y, cv=5, n_jobs=-1, scoring="accuracy")
+    print(cv)
     print('TF-IDF + Random Forest accuracy:', round(acc, 4))
     print('TF-IDF + Random Forest AUC:', round(roc, 4))
     print('TF-IDF + Random Forest F1:', round(f1, 4))

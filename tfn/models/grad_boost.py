@@ -1,26 +1,46 @@
 from tfn.models.model import Model
-from tfn.feature_extraction.tf_idf import get_tfidf_model
+
 import xgboost as xgb
+import numpy as np
+
+from skopt.utils import Categorical, Real, Integer
+
 
 class GradientBoost(Model):
-    def fit(self, X, y):
-        self.vectorizer, self.corpus_matrix, _ = get_tfidf_model(X)
+    def __init__(self, **params):
+        self.params = {'objective': 'binary:logistic',
+                       'eval_metric': 'rmse'}
+        self.params.update(params)
+        self.clf = None
 
-        param = {'objective': 'binary:logistic'}
-
+    def fit(self, X, y, embedding_type='tfidf', glove=None):
+        super(GradientBoost, self).fit(X, y, embedding_type, glove)
+        if self.embedding_type != 'tfidf':
+            self.corpus_matrix = np.sum(self.corpus_matrix, axis=1)
         epochs = 100
-
         D_train = xgb.DMatrix(self.corpus_matrix, label=y)
-        self.clf = xgb.train(param, D_train, epochs)
+        self.clf = xgb.train(self.params, D_train, epochs)
 
     def predict(self, X):
-        X_trans = self.vectorizer.transform(X)
-        D_test = xgb.DMatrix(X_trans)
+        super(GradientBoost, self).predict(X)
+        if self.embedding_type != 'tfidf':
+            self.X_transform = np.sum(self.X_transform, axis=1)
+        D_test = xgb.DMatrix(self.X_transform)
         y_pred = self.clf.predict(D_test)
 
         # Convert to binary output
-        y_pred = (y_pred > 0.5).astype(int)
-        return y_pred
+        return (y_pred > 0.5).astype(int)
+
+    def get_params(self, **kwargs):
+        return self.params
+
+    @classmethod
+    def get_space(cls):
+        return [Categorical(['glove', 'char', 'tfidf'], name='embedding'),
+                Real(1e-3, 0.3, 'log-uniform', name='eta'),
+                Real(1e-3, 0.3, 'log-uniform', name='min_child_weight'),
+                Integer(3, 10, name='max_depth'),
+                Real(1e-6, 1e+6, 'log-uniform', name='gamma')]
 
 
 if __name__ == "__main__":

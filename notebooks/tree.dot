@@ -1415,7 +1415,7 @@ node [shape=box, style="filled", color="black"] ;
 705 -> 706 ;
 707 [label="freeze <= 0.5\ngini = 0.045\nsamples = 43\nvalue = [42, 1]\nclass = Non-disaster", fillcolor="#e58139f9"] ;
 706 -> 707 ;
-708 [label="self <= 0.5\ngini = 0.046\nsamples = 42\nvalue = [41, 1]\nclass = Non-disaster", fillcolor="#e58139f9"] ;
+708 [label="cls <= 0.5\ngini = 0.046\nsamples = 42\nvalue = [41, 1]\nclass = Non-disaster", fillcolor="#e58139f9"] ;
 707 -> 708 ;
 709 [label="#euro <= 0.5\ngini = 0.048\nsamples = 41\nvalue = [40, 1]\nclass = Non-disaster", fillcolor="#e58139f9"] ;
 708 -> 709 ;
