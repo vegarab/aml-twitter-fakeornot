@@ -6,8 +6,8 @@ from tfn.helper import _get_glove_embeddings, _get_stop_words
 
 
 class AugmentWithEmbeddings:
-    def __init__(self):
-        self.glove_emb = _get_glove_embeddings()
+    def __init__(self, emb_size):
+        self.glove_emb = _get_glove_embeddings(emb_size=emb_size)
         self.X_aug = []
         self.y_aug = []
         self.stopwords = _get_stop_words()
