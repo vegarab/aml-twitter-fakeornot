@@ -80,8 +80,8 @@ if __name__ == "__main__":
     ds = Dataset(type)
     emb = GloveEmbedding(ds.X, type=type)
 
-    print(emb.corpus_vectors.shape)
-    print(emb.corpus[0])
+    #print(emb.corpus_vectors.shape)
+    #print(emb.corpus[0])
     print(emb.corpus_vectors[0])
 
     # Test OneHotCharEmbedding

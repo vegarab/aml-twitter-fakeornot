@@ -7,6 +7,7 @@ import pandas
 import numpy
 import spacy
 
+
 from spellchecker import SpellChecker
 
 from nltk.tokenize import TweetTokenizer
@@ -79,8 +80,8 @@ def _has_digits(token):
 
 
 class Dataset():
-    def __init__(self, tokenizer, strip_handles=True, 
-                                  strip_rt=True, 
+    def __init__(self, tokenizer, strip_handles=True,
+                                  strip_rt=True,
                                   strip_digits=True,
                                   strip_hashtags=False,
                  test_size=0.3):
@@ -90,14 +91,14 @@ class Dataset():
         self.y = self.y.tolist()
 
         if tokenizer == 'twitter':
-            self.X = self._tokenize(self.corpus, 
-                                    strip_handles, 
-                                    strip_rt, 
+            self.X = self._tokenize(self.corpus,
+                                    strip_handles,
+                                    strip_rt,
                                     strip_digits,
                                     strip_hashtags)
         elif tokenizer == 'lemmatize':
-            self.X = self._tokenize_with_lemma(self.corpus, 
-                                               strip_handles, 
+            self.X = self._tokenize_with_lemma(self.corpus,
+                                               strip_handles,
                                                strip_rt,
                                                strip_digits)
         elif tokenizer == 'glove':
@@ -113,7 +114,7 @@ class Dataset():
 
     def _tokenize_with_lemma(self, corpus, strip_handles=True, strip_rt=True, strip_digits=True):
         ''' Tokenize and lemmatize using Spacy '''
-        
+
         stop_words = _get_stop_words(strip_handles, strip_rt)
 
         output = []
@@ -154,7 +155,7 @@ class Dataset():
 
         return output
 
-    def _tokenize(self, corpus, strip_handles=True, strip_rt=True, 
+    def _tokenize(self, corpus, strip_handles=True, strip_rt=True,
                   strip_digits=True, strip_hashtags=False):
         ''' Tokenize corpus using NLTK's TwitterTokenizer '''
 
@@ -166,10 +167,10 @@ class Dataset():
             # Add special sequence for emojis (??). Needs to be done before any
             # punctuation removal or tokenization
             doc = doc.replace('??', _EMOJI_SEQUENCE)
-            
+
             # Applies cleaning from clean.py
             doc = clean(doc)
-            
+
             # Tokenize
             tokens = [word.lower() for word in tokenizer.tokenize(doc)]
 
@@ -262,3 +263,4 @@ class Dataset():
 
 if __name__ == '__main__':
    ds = Dataset('glove')
+

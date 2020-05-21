@@ -22,7 +22,7 @@ fname = get_tmpfile("fasttext2vec.model")
 model.save(fname)
 model = FT_gensim.load(fname)
 '''
-def word2vec_model(corpus=trainX,update =False):
+def word2vec_model(corpus,update =False,dim=100):
     print('trainning')
     data=[]
     for i in corpus:
@@ -36,7 +36,7 @@ def word2vec_model(corpus=trainX,update =False):
     # from gensim.models import FastText  # FIXME: why does Sphinx dislike this import?
     #from gensim.test.utils import common_texts  # some example sentences
 
-    model = FT_gensim(size=300, window=3, min_count=1)  # instantiate
+    model = FT_gensim(size=dim, window=3, min_count=1)  # instantiate
     model.build_vocab(sentences=new_data,update =update )
     model.train(sentences=new_data, total_examples=len(new_data), epochs=10)  # train
 
@@ -100,6 +100,7 @@ def get_word(gram=1,target=1,length =100):
 
 
 if __name__ == '__main__':
+    '''
     trainX , y = Dataset('twitter')._get_training_data_from_csv()
 
     vocab1_diaster=get_word(gram =1,target =1,length =500)
@@ -118,3 +119,4 @@ if __name__ == '__main__':
     tsne_plot(word2vecmod,vocab2_nondiaster,"BiGram nondiaster word embedding")
     tsne_plot(word2vecmod,vocab3_diaster,"TriGram diaster word embedding")
     tsne_plot(word2vecmod,vocab3_nondiaster,"TriGram nondiaster word embedding")
+'''

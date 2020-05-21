@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     # Get data char emb
     data = Dataset(args.type)
-    emb = CharEmbedding(data.X)
+    emb = CharEmbedding(data.X, train=rue)
     X = emb.X_enc
     y = np.array(data.y)
     emb_size = 100

@@ -27,7 +27,7 @@ if __name__ == '__main__':
                         help="Exports results to results.csv")
     args = parser.parse_args()
 
-    data = Dataset('twitter')
+    data = Dataset('glove')
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y)
 
     dummy = Dummy()

@@ -9,6 +9,9 @@ class KNN(Model):
     def fit(self, X, y):
         self.vectorizer, self.X_vectorized, _ = get_tfidf_model(X)
 
+        print(self.X_vectorized)
+
+
         self.clf = KNeighborsClassifier()
         self.clf.fit(self.X_vectorized, y)
 
