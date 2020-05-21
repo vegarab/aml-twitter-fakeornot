@@ -6,7 +6,7 @@ from tfn.helper import _get_glove_embeddings, _get_stop_words
 
 
 class AugmentWithEmbeddings:
-    def __init__(self, X, y, replace_pr=0.25, num_copies=5):
+    def __init__(self):
         self.glove_emb = _get_glove_embeddings()
         self.X_aug = []
         self.y_aug = []
