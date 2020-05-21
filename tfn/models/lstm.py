@@ -234,7 +234,7 @@ if __name__ == "__main__":
     from sklearn.model_selection import train_test_split, KFold
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     import numpy as np
-
+    from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
@@ -251,6 +251,7 @@ if __name__ == "__main__":
     parser.add_argument("--dropout", dest="dropout", default=0.5, type=float)
     parser.add_argument("--cv", dest="cv", action="store_true")
     parser.add_argument("--no-early-stop", dest="early_stopping", action="store_false")
+    parser.add_argument("--augment", dest="augment", action="store_true")
 
     args = parser.parse_args()
 
@@ -302,10 +303,14 @@ if __name__ == "__main__":
     else:
         kf = KFold(n_splits=5)
         cv = []
+        aug = AugmentWithEmbeddings()
         for ix, (train_index, test_index) in enumerate(kf.split(X_train)):
             print('Fold %d' % ix)
             X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
             X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
+
+            if args.augment:
+                X_t, y_t = AugmentWithEmbeddings.augment(X_t, y_t)
             lstm = LSTMModel(num_features=emb_size, seq_length=max_len, **params)
             lstm.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)

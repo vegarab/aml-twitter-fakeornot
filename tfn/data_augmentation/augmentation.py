@@ -10,7 +10,9 @@ class AugmentWithEmbeddings:
         self.glove_emb = _get_glove_embeddings()
         self.X_aug = []
         self.y_aug = []
-        stopwords = _get_stop_words()
+        self.stopwords = _get_stop_words()
+
+    def augment(self, X, y, replace_pr=0.25, num_copies=4):
         for i in range(len(X)):
             if i % 100 == 0:
                 print("Augmentation %s%% complete..." % (100*i // len(X)))
@@ -20,7 +22,7 @@ class AugmentWithEmbeddings:
             for _ in range(num_copies):
                 new_sentence = []
                 for word in sentence:
-                    if word in stopwords:
+                    if word in self.stopwords:
                         new_word = word
                     elif random.random() < replace_pr:
                         new_word = self.replace_word(word)
@@ -31,6 +33,7 @@ class AugmentWithEmbeddings:
                 # print(sentence, new_sentence)
                 self.X_aug.append(new_sentence)
                 self.y_aug.append(y[i])
+        return X_aug, y_aug
 
     def replace_word(self, word, topn=3, sim_cutoff=0.8):
         word = word.lower()

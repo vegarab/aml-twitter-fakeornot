@@ -230,7 +230,7 @@ if __name__ == '__main__':
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from argparse import ArgumentParser
-
+    from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
 
 
     parser = ArgumentParser()
@@ -247,6 +247,7 @@ if __name__ == '__main__':
     parser.add_argument("--filter-sizes", dest="filter_sizes", nargs='+', default=[3,3,3], type=int)
     parser.add_argument("--cv", dest="cv", action="store_true")
     parser.add_argument("--no-early-stop", dest="early_stopping", action="store_false")
+    parser.add_argument("--augment", dest="augment", action="store_true")
 
     args = parser.parse_args()
 
@@ -298,6 +299,8 @@ if __name__ == '__main__':
             print('Fold %d' % ix)
             X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
             X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
+            if args.augment:
+                X_t = augment(X_t)
             cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
             cnn.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)
