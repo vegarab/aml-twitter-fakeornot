@@ -241,10 +241,19 @@ if __name__ == '__main__':
     parser.add_argument("--momentum", dest="momentum", default=0.5, type=float)
     parser.add_argument("--dropout", dest="dropout", default=0.5, type=float)
     parser.add_argument("--n-filters", dest="n_filters", default=100, type=int)
-    parser.add_argument("--filter-sizes", dest="n_filters", nargs='+', default=[3,3,3], type=int)
+    parser.add_argument("--filter-sizes", dest="filter_sizes", nargs='+', default=[3,3,3], type=int)
     parser.add_argument("--cv", dest="cv", action="store_true")
 
     args = parser.parse_args()
+
+    params = {
+        "opt": args.opt,
+        "lr":args.lr,
+        "momentum": args.momentum,
+        "dropout": args.dropout,
+        "n_filters": args.n_filters,
+        "filter_sizes": args.filter_sizes
+    }
 
     embedding_type = args.embedding
     data = Dataset(embedding_type)
@@ -257,7 +266,7 @@ if __name__ == '__main__':
 
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
     max_len = len(max(data.X, key=len))
-    cnn = CNNModel(num_features=emb_size, seq_length=max_len)
+    cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
     if not args.cv:
         train_losses, train_accs, val_losses, val_accs = cnn.fit(X_train, y_train, epochs=args.epochs,
                                                                   embedding_type=embedding_type, glove=emb)
@@ -284,7 +293,7 @@ if __name__ == '__main__':
             print('Fold %d' % ix)
             X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
             X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
-            cnn = CNNModel(num_features=emb_size, seq_length=max_len)
+            cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
             cnn.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)
             y_pred = cnn.predict(X_t_t)
@@ -298,14 +307,6 @@ if __name__ == '__main__':
             cv.append(acc)
         cv_mean = np.mean(cv)
         cv_std = np.std(cv)
-        params = {
-            "embedding": args.embedding,
-            "opt": args.opt,
-            "lr": args.lr,
-            "momentum": args.momentum,
-            "dropout": args.dropout,
-            "n_filters": args.n_filters,
-            "filter_sizes": args.filter_sizes
-        }
+        params['embedding'] = args.embedding
         log_torch_model(cnn, cv_mean, params, std=cv_std)
 

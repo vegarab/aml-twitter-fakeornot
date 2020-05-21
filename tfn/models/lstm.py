@@ -227,9 +227,9 @@ def visualize_training(hist1, label1, hist2, label2, xlabel, ylabel, filepath):
 
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
-    from tfn.helper import export_results
+    from tfn.logger import log_torch_model
     from tfn.feature_extraction.embedding import GloveEmbedding, CharEmbedding
-    from sklearn.model_selection import train_test_split
+    from sklearn.model_selection import train_test_split, KFold
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     import numpy as np
 
@@ -250,6 +250,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    params = {
+        "opt": args.opt,
+        "hidden_dim": args.hidden_dim,
+        "num_layers": args.num_layers,
+        "lr": args.lr,
+        "momentum": args.momentum,
+        "dropout": args.dropout
+    }
+
     embedding_type = args.embedding
     if embedding_type == "glove":
         emb_size = args.emb_size
@@ -265,7 +274,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
     max_len = len(max(data.X, key=len))
 
-    lstm = LSTMModel(num_features=emb_size, seq_length=max_len)
+    lstm = LSTMModel(num_features=emb_size, seq_length=max_len, **params)
     if not args.cv:
         train_losses, train_accs, val_losses, val_accs = lstm.fit(X_train, y_train, epochs=args.epochs,
                                                                  embedding_type=embedding_type, glove=emb)
@@ -276,7 +285,7 @@ if __name__ == "__main__":
                            val_accs, 'Validation accuracy',
                            'Epochs', 'Prediction Accuracy', 'acc_lstm.png')
 
-        y_pred = cnn.predict(X_test)
+        y_pred = lstm.predict(X_test)
 
         acc = accuracy_score(y_test, y_pred)
         roc = roc_auc_score(y_test, y_pred)
@@ -286,18 +295,25 @@ if __name__ == "__main__":
         print('GLoVe + CNN AUC:', round(roc, 4))
         print('GLoVe + CNN F1:', round(f1, 4))
     else:
-        cv = cross_val_score(cnn, X_train, y_train, cv=5, n_jobs=-1, scoring="accuracy",
-                             fit_params={'embedding_type': embedding_type, 'glove': emb})
+        kf = KFold(n_splits=5)
+        cv = []
+        for ix, (train_index, test_index) in enumerate(kf.split(X_train)):
+            print('Fold %d' % ix)
+            X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
+            X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
+            lstm = LSTMModel(num_features=emb_size, seq_length=max_len, **params)
+            lstm.fit(X_t, y_t, epochs=args.epochs,
+                    embedding_type=embedding_type, glove=emb)
+            y_pred = lstm.predict(X_t_t)
+
+            acc = accuracy_score(y_t_t, y_pred)
+            roc = roc_auc_score(y_t_t, y_pred)
+            f1 = f1_score(y_t_t, y_pred)
+            print(acc)
+            print(roc)
+            print(f1)
+            cv.append(acc)
         cv_mean = np.mean(cv)
         cv_std = np.std(cv)
-        params = {
-
-            "embedding": args.embedding,
-            "opt": args.opt,
-            "lr": args.lr,
-            "momentum": args.momentum,
-            "dropout": args.dropout,
-            "n_filters": args.n_filters,
-            "filter_sizes": args.filter_sizes
-        }
-        log_torch_model(cnn, cv_mean, params, std=cv_std)
+        params['embedding'] = args.embedding
+        log_torch_model(lstm, cv_mean, params, std=cv_std)
