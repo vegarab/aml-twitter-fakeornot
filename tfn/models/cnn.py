@@ -205,11 +205,12 @@ class CNNModel(Model):
     def get_space(cls):
         return [Categorical(['glove', 'char'], name='embedding'),
                 Categorical(['SGD', 'Adam'], name='opt'),
-                Categorical([1e-4, 1e-3, 1e-2], name='lr'),
+                # Categorical([1e-4, 1e-3, 1e-2], name='lr'),
+                Categorical([1e-4], name='lr'),
                 Categorical([0.5, 0.9, 0.99], name='momentum'),
-                Categorical([(4,4,4), (3,4,5), (5,4,3),
-                             (6,6,6), (5,6,7), (7,6,5)], name='filter_sizes'),
-                Integer(50, 200, name="n_filters"),
+                Categorical([(4,4,4), (3,2,1), (5,4,3),
+                             (3,3,3), (2,2,2), (4,3,2)], name='filter_sizes'),
+                Integer(150, 300, name="n_filters"),
                 Real(0.1, 0.5, 'uniform', name='dropout')]
     def state_dict(self):
         return self.model.state_dict()
@@ -229,6 +230,8 @@ if __name__ == '__main__':
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from argparse import ArgumentParser
+
+    from tfn.logger import log_torch_model
 
     parser = ArgumentParser()
     parser.add_argument("--epochs", "-e", dest="epochs", default=50, type=int,
