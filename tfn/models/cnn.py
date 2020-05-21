@@ -15,6 +15,7 @@ from tfn.feature_extraction.embedding import GloveEmbedding
 from skopt.utils import Real, Integer, Categorical
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import accuracy_score
 
 class CNN(nn.Module):
     def __init__(self, embedding_dim, n_filters, filter_sizes, output_dim, dropout):
