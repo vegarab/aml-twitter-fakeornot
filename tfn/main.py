@@ -18,8 +18,8 @@ import pickle
 from skopt import gp_minimize
 from skopt.utils import use_named_args
 from skopt.callbacks import DeltaYStopper
-from sklearn.model_selection import cross_val_score
-
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.metrics import accuracy_score
 
 
 
@@ -99,6 +99,7 @@ if __name__ == "__main__":
     if not os.path.exists(CHAR_MODEL):
         embedding.CharEmbedding(None, train=True, training_path=CHAR_TRAINING_FILE, train_only=True)
 
+
     # Initialise glove embeddings
     glove_init = embedding.GloveEmbedding(emb_size=200)
     # Run SK models with hyperparameter search...
@@ -125,10 +126,12 @@ if __name__ == "__main__":
                 model_params.pop('embedding', None)
                 X = datasets[embedding_type].X
                 y = datasets[embedding_type].y
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
                 max_len = len(max(X, key=len))
                 model = models[model_type](num_features=embedding_size, seq_length=max_len, **model_params)
-                model.fit(X, y, epochs=50, embedding_type=embedding_type, glove=glove_init)
-                acc = model.get_val_accuracy()
+                model.fit(X_train, y_train, epochs=50, embedding_type=embedding_type, glove=glove_init)
+                predicitions = model.predict(X_test)
+                acc = accuracy_score(y_test, predicitions)
                 log_torch_model(model, acc, params)
                 pbar.update(1)
                 return -acc
