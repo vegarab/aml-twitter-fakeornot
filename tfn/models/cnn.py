@@ -282,8 +282,8 @@ if __name__ == '__main__':
         cv = []
         for ix, (train_index, test_index) in enumerate(kf.split(X_train)):
             print('Fold %d' % ix)
-            X_t, y_t = map(lambda i: X_train[i], train_index), map(lambda i: y_train[i], train_index)
-            X_t_t, y_t_t = map(lambda i: X_train[i], test_index), map(lambda i: y_train[i], test_index)
+            X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
+            X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
             cnn = CNNModel(num_features=emb_size, seq_length=max_len)
             cnn.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)
