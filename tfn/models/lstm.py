@@ -2,7 +2,10 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, TensorDataset
 
+import time
 import numpy as np
+import matplotlib.pyplot as plt
+
 from tfn.models.model import Model
 from skopt.utils import Real, Integer, Categorical
 from sklearn.metrics import accuracy_score
@@ -87,10 +90,17 @@ class LSTMModel(Model):
         last_lr_drop = 0
         prev_training_loss = 999_999
         prev_val_loss = 999_999
+
+        val_losses =  np.ndarray(epochs)
+        val_accs = np.ndarray(epochs)
+        train_losses = np.ndarray(epochs)
+        train_accs = np.ndarray(epochs)
         for epoch in range(epochs):
             print("Epoch: %s" % epoch)
             training_loss = 0
+            train_acc = []
             val_loss = 0
+            val_acc = []
             for i, (X_train, y_train) in enumerate(train_loader):
                 if i % 100 == 0:
                     print("Epoch progress: %s%%" % int(100 * i / len(train_loader)))
@@ -101,16 +111,29 @@ class LSTMModel(Model):
                 loss.backward()
                 optimizer.step()
 
+                # Convert to integer predictions
+                y_pred = np.where(y_pred.cpu().detach().numpy() > 0.5, 1, 0)
+
+                train_acc.append(accuracy_score(y_train.cpu().detach().numpy(), y_pred))
+
+            train_accs[epoch] = sum(train_acc)/len(train_acc)
+
             for (X_val, y_val) in val_loader:
                 y_pred = self.model(X_val)
                 loss = criterion(y_pred, y_val.double())
                 val_loss += (loss.item() / len(val_data))
 
+                # Convert to integer predictions
+                y_pred = np.where(y_pred.cpu().detach().numpy() > 0.5, 1, 0)
+                val_acc.append(accuracy_score(y_val.cpu().detach().numpy(), y_pred))
+
+            val_accs[epoch] = sum(val_acc)/len(val_acc)
+
             print('Training Loss: %.4g' % training_loss)
+            train_losses[epoch] = training_loss
             print('Validation Loss: %.4g' % val_loss)
+            val_losses[epoch] = val_loss
             print('Loss / Prev : %s' % (training_loss / prev_training_loss))
-            self.history['train_loss'].append(training_loss)
-            self.history['val_loss'].append(val_loss)
 
             # if model does not improve for 3 consecutive epochs then stop early
             improvement = 1 - (val_loss / prev_val_loss)
@@ -120,6 +143,7 @@ class LSTMModel(Model):
                     break
             else:
                 improvement = 0
+
 
             # if model overfits excessively, stop early
             if training_loss < (val_loss*0.75):
@@ -134,6 +158,8 @@ class LSTMModel(Model):
             prev_training_loss = training_loss
         self.val_loader = val_loader
 
+        return train_losses, train_accs, val_losses, val_accs
+
     def predict(self, X, use_val_loader=False):
         if use_val_loader:
             test_loader = self.val_loader
@@ -144,14 +170,12 @@ class LSTMModel(Model):
         self.model.eval()
         predictions_list = []
         actual_list = []
-        for (X_test, y_test) in test_loader:
+        for (X_test) in test_loader:
             y_pred = self.model(X_test)
             if self.device == "cpu":
                 predictions_list.append(y_pred.data.numpy().reshape(-1))
                 actual_list.append(y_test.data.numpy().reshape(-1))
             else:
-                # print('Pred:',y_pred.data.cpu().numpy().shape)
-                # print('Test:',y_test.data.cpu().numpy().shape)
                 predictions_list.append(y_pred.data.cpu().numpy().reshape(-1))
                 actual_list.append(y_test.data.cpu().numpy().reshape(-1))
 
@@ -183,6 +207,17 @@ class LSTMModel(Model):
     def state_dict(self):
         return self.model.state_dict()
 
+def visualize_training(hist1, label1, hist2, label2, xlabel, ylabel, filepath):
+    plt.figure(figsize=(8,8))
+    plt.plot(hist1, label=label1)
+    plt.plot(hist2, label=label2)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.legend()
+    plt.savefig(filepath)
+    plt.show()
+
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
     from tfn.helper import export_results
@@ -198,13 +233,18 @@ if __name__ == "__main__":
                         help="Maximum number of epochs to run for.")
     parser.add_argument("--emb-size", "-s", dest="emb_size", default=50, type=int,
                         help="Size of word embedding vectors (must be in 25, 50, 100, 200).")
-    parser.add_argument("--emb-type", "-t", dest="type", default="glove", type=str,
-                        help="Embedding type. Can be 'word' or 'char'.")
-    parser.add_argument("-x", "--export-results", dest="export", action='store_true',
-                        help="Exports results to results.csv")
+    parser.add_argument("--embedding", dest="embedding", default="glove")
+    parser.add_argument("--opt", dest="opt", default="SGD")
+    parser.add_argument("--hidden-dim", dest="hidden_dim", default=50, type=int)
+    parser.add_argument("--num-layers", dest="num_layers", default=1, type=int)
+    parser.add_argument("--lr", dest="lr", default=1e-3, type=float)
+    parser.add_argument("--momentum", dest="momentum", default=0.5, type=float)
+    parser.add_argument("--dropout", dest="dropout", default=0.5, type=float)
+
     args = parser.parse_args()
 
-    if args.type == "glove":
+    embedding_type = args.embedding
+    if embedding_type == "glove":
         emb_size = args.emb_size
     else:
         emb_size = 100
@@ -216,19 +256,25 @@ if __name__ == "__main__":
     # y = np.array(data.y)
 
     # Get data char emb
-    data = Dataset(args.type)
-    emb = GloveEmbedding(data.X, emb_size=100, type=args.type)
-    X = emb.corpus_vectors
-    print(X.shape)
-    y = np.array(data.y)
-    emb_size = 100
+    data = Dataset(embedding_type)
+    if embedding_type == "glove":
+        emb = GloveEmbedding(data.X, emb_size=emb_size)
+    else:
+        emb = None
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=True)
+    X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
+    max_len = len(max(data.X, key=len))
 
-    # print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+    lstm = LSTMModel(num_features=emb_size, seq_length=max_len)
+    train_losses, train_accs, val_losses, val_accs = lstm.fit(X_train, y_train, epochs=args.epochs,
+                                                              embedding_type=embedding_type, glove=emb)
 
-    lstm = LSTMModel(num_features=emb_size, seq_length=X.shape[1])
-    lstm.fit(X_train, y_train, epochs=args.epochs)
+    visualize_training(train_losses, 'Training loss',
+                       val_losses, 'Validation loss',
+                       'Epochs', 'Binary Cross-entropy Loss', 'loss_lstm.png')
+    visualize_training(train_accs, 'Training accuracy',
+                       val_accs, 'Validation accuracy',
+                       'Epochs', 'Prediction Accuracy', 'acc_lstm.png')
 
     y_pred = lstm.predict(X_test)
 
@@ -240,5 +286,4 @@ if __name__ == "__main__":
     print('GLoVe + LSTM AUC:', round(roc, 4))
     print('GLoVe + LSTM F1:', round(f1, 4))
 
-    if args.export:
-        export_results(acc=acc, roc=roc, f1=f1)
+
