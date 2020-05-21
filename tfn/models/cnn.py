@@ -14,7 +14,7 @@ from tfn.feature_extraction.embedding import GloveEmbedding
 
 from skopt.utils import Real, Integer, Categorical
 import matplotlib.pyplot as plt
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, KFold
 from sklearn.metrics import accuracy_score
 
 class CNN(nn.Module):
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     parser.add_argument("--momentum", dest="momentum", default=0.5, type=float)
     parser.add_argument("--dropout", dest="dropout", default=0.5, type=float)
     parser.add_argument("--n-filters", dest="n_filters", default=100, type=int)
-    parser.add_argument("--filter-sizes", dest="n_filters", nargs='+', type=int, required=True)
+    parser.add_argument("--filter-sizes", dest="n_filters", nargs='+', default=[3,3,3], type=int, required=True)
     parser.add_argument("--cv", dest="cv", action="store_true")
 
     args = parser.parse_args()
@@ -257,7 +257,7 @@ if __name__ == '__main__':
 
     X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
     max_len = len(max(data.X, key=len))
-    cnn = CNNModel(emb_size, max_len)
+    cnn = CNNModel(num_features=emb_size, seq_length=max_len)
     if not args.cv:
         train_losses, train_accs, val_losses, val_accs = cnn.fit(X_train, y_train, epochs=args.epochs,
                                                                   embedding_type=embedding_type, glove=emb)
@@ -278,12 +278,27 @@ if __name__ == '__main__':
         print('GLoVe + CNN AUC:', round(roc, 4))
         print('GLoVe + CNN F1:', round(f1, 4))
     else:
-        cv = cross_val_score(cnn, X_train, y_train, cv=5, n_jobs=-1, scoring="accuracy",
-                             fit_params={'embedding_type': embedding_type, 'glove': emb})
+        kf = KFold(n_splits=5)
+        cv = []
+        for ix, (train_index, test_index) in enumerate(kf.split(X_train)):
+            print('Fold %d' % ix)
+            X_t, y_t = map(lambda i: X_train[i], train_index), map(lambda i: y_train[i], train_index)
+            X_t_t, y_t_t = map(lambda i: X_train[i], test_index), map(lambda i: y_train[i], test_index)
+            cnn = CNNModel(num_features=emb_size, seq_length=max_len)
+            cnn.fit(X_t, y_t, epochs=args.epochs,
+                    embedding_type=embedding_type, glove=emb)
+            y_pred = cnn.predict(X_t_t)
+
+            acc = accuracy_score(y_t_t, y_pred)
+            roc = roc_auc_score(y_t_t, y_pred)
+            f1 = f1_score(y_t_t, y_pred)
+            print(acc)
+            print(roc)
+            print(f1)
+            cv.append(acc)
         cv_mean = np.mean(cv)
         cv_std = np.std(cv)
         params = {
-
             "embedding": args.embedding,
             "opt": args.opt,
             "lr": args.lr,

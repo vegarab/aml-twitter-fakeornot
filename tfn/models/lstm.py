@@ -266,22 +266,38 @@ if __name__ == "__main__":
     max_len = len(max(data.X, key=len))
 
     lstm = LSTMModel(num_features=emb_size, seq_length=max_len)
-    train_losses, train_accs, val_losses, val_accs = lstm.fit(X_train, y_train, epochs=args.epochs,
-                                                              embedding_type=embedding_type, glove=emb)
+    if not args.cv:
+        train_losses, train_accs, val_losses, val_accs = lstm.fit(X_train, y_train, epochs=args.epochs,
+                                                                 embedding_type=embedding_type, glove=emb)
+        visualize_training(train_losses, 'Training loss',
+                           val_losses, 'Validation loss',
+                           'Epochs', 'Binary Cross-entropy Loss', 'loss_lstm.png')
+        visualize_training(train_accs, 'Training accuracy',
+                           val_accs, 'Validation accuracy',
+                           'Epochs', 'Prediction Accuracy', 'acc_lstm.png')
 
-    visualize_training(train_losses, 'Training loss',
-                       val_losses, 'Validation loss',
-                       'Epochs', 'Binary Cross-entropy Loss', 'loss_lstm.png')
-    visualize_training(train_accs, 'Training accuracy',
-                       val_accs, 'Validation accuracy',
-                       'Epochs', 'Prediction Accuracy', 'acc_lstm.png')
+        y_pred = cnn.predict(X_test)
 
-    y_pred = lstm.predict(X_test)
+        acc = accuracy_score(y_test, y_pred)
+        roc = roc_auc_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
 
-    acc = accuracy_score(y_test, y_pred)
-    roc = roc_auc_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+        print('GLoVe + CNN accuracy:', round(acc, 4))
+        print('GLoVe + CNN AUC:', round(roc, 4))
+        print('GLoVe + CNN F1:', round(f1, 4))
+    else:
+        cv = cross_val_score(cnn, X_train, y_train, cv=5, n_jobs=-1, scoring="accuracy",
+                             fit_params={'embedding_type': embedding_type, 'glove': emb})
+        cv_mean = np.mean(cv)
+        cv_std = np.std(cv)
+        params = {
 
-    print('GLoVe + LSTM accuracy:', round(acc, 4))
-    print('GLoVe + LSTM AUC:', round(roc, 4))
-    print('GLoVe + LSTM F1:', round(f1, 4))
+            "embedding": args.embedding,
+            "opt": args.opt,
+            "lr": args.lr,
+            "momentum": args.momentum,
+            "dropout": args.dropout,
+            "n_filters": args.n_filters,
+            "filter_sizes": args.filter_sizes
+        }
+        log_torch_model(cnn, cv_mean, params, std=cv_std)
