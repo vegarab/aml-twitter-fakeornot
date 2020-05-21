@@ -11,6 +11,7 @@ import numpy as np
 from tfn.preprocess import Dataset
 from tfn.models.model import Model
 from tfn.feature_extraction.embedding import GloveEmbedding
+from tfn.logger import log_torch_model
 
 from skopt.utils import Real, Integer, Categorical
 import matplotlib.pyplot as plt
@@ -194,9 +195,6 @@ class CNNModel(Model):
 
         return predictions
 
-    def get_val_accuracy(self):
-        self.predict(None, use_val_loader=True)
-        return accuracy_score(self.predictions, self.actuals)
 
     def get_params(self, **kwargs):
         return {}
@@ -231,7 +229,7 @@ if __name__ == '__main__':
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from argparse import ArgumentParser
 
-    from tfn.logger import log_torch_model
+
 
     parser = ArgumentParser()
     parser.add_argument("--epochs", "-e", dest="epochs", default=50, type=int,
