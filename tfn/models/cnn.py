@@ -241,7 +241,7 @@ if __name__ == '__main__':
     parser.add_argument("--momentum", dest="momentum", default=0.5, type=float)
     parser.add_argument("--dropout", dest="dropout", default=0.5, type=float)
     parser.add_argument("--n-filters", dest="n_filters", default=100, type=int)
-    parser.add_argument("--filter-sizes", dest="n_filters", nargs='+', default=[3,3,3], type=int, required=True)
+    parser.add_argument("--filter-sizes", dest="n_filters", nargs='+', default=[3,3,3], type=int)
     parser.add_argument("--cv", dest="cv", action="store_true")
 
     args = parser.parse_args()
