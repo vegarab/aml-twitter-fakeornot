@@ -47,7 +47,7 @@ class CNN(nn.Module):
 
 
 class CNNModel(Model):
-    def __init__(self, num_features, seq_length, n_filters=100, filter_sizes=(3,4,5), output_dim=1, dropout=0.5,
+    def __init__(self, num_features, seq_length, early_stopping=True, n_filters=100, filter_sizes=(3,4,5), output_dim=1, dropout=0.5,
                  batch_size=50, lr=0.01, momentum=0.2, opt="SGD"):
         super().__init__()
         
@@ -64,6 +64,7 @@ class CNNModel(Model):
         self.opt = opt
         self.momentum = momentum
         self.batch_size = batch_size
+        self.early_stopping = early_stopping
 
         self.model.double()
         if self.device == "cuda:0":
@@ -143,18 +144,19 @@ class CNNModel(Model):
             val_losses[epoch] = val_loss
             print('Loss / Prev : %s' % (training_loss / prev_training_loss))
 
-            # if model does not improve for 3 consecutive epochs then stop early
-            improvement = 1 - (val_loss / prev_val_loss)
-            if improvement < 0:
-                early_stopping += 1
-                if early_stopping >= 2:
-                    break
-            else:
-                improvement = 0
+            if self.early_stopping:
+                # if model does not improve for 3 consecutive epochs then stop early
+                improvement = 1 - (val_loss / prev_val_loss)
+                if improvement < 0:
+                    early_stopping += 1
+                    if early_stopping >= 2:
+                        break
+                else:
+                    improvement = 0
 
-            # if model overfits excessively, stop early
-            if training_loss < (val_loss * 0.75):
-                break
+                # if model overfits excessively, stop early
+                if training_loss < (val_loss * 0.75):
+                    break
 
             # if model does not improve and optimiser is sgd, lower the learning rate
             if self.opt == 'SGD' and epochs - 2 > last_lr_drop and improvement < 0:
@@ -244,6 +246,7 @@ if __name__ == '__main__':
     parser.add_argument("--n-filters", dest="n_filters", default=100, type=int)
     parser.add_argument("--filter-sizes", dest="filter_sizes", nargs='+', default=[3,3,3], type=int)
     parser.add_argument("--cv", dest="cv", action="store_true")
+    parser.add_argument("--no-early-stop", dest="early_stopping", action="store_false")
 
     args = parser.parse_args()
 
@@ -253,7 +256,8 @@ if __name__ == '__main__':
         "momentum": args.momentum,
         "dropout": args.dropout,
         "n_filters": args.n_filters,
-        "filter_sizes": args.filter_sizes
+        "filter_sizes": args.filter_sizes,
+        "early_stopping": args.early_stopping
     }
 
     embedding_type = args.embedding
