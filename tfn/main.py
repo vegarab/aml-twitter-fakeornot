@@ -80,13 +80,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     models = {
-        'RandomForest': RandomForest,
-        'LSTM': LSTMModel,
+        # 'RandomForest': RandomForest,
+        # 'LSTM': LSTMModel,
         'SVM': SVM,
-        'kNN': KNN,
-        'NaiveBayes': Naive_Bayes,
-        'GradientBoost': GradientBoost,
-        'CosineSimilarity': CosineSimilarity
+        # 'kNN': KNN,
+        # 'NaiveBayes': Naive_Bayes,
+        # 'GradientBoost': GradientBoost,
+        # 'CosineSimilarity': CosineSimilarity
     }
     print('Processing datasets...')
     datasets = {

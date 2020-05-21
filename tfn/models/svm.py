@@ -28,7 +28,7 @@ class SVM(Model):
     def get_space(cls):
         return [#Categorical(['tfidf'], name='embedding'),
                 # Categorical(['glove', 'char', 'tfidf'], name='embedding'),
-                Categorical(['char', 'tfidf'], name='embedding'),
+                Categorical(['tfidf'], name='embedding'),
                 Real(1e-6, 1e+5, "log-uniform", name='C'),
                 Real(1e-6, 8, "log-uniform", name='gamma'),
                 Integer(1, 8, name='degree'),
@@ -37,12 +37,14 @@ class SVM(Model):
 
 if __name__ == '__main__':
     from tfn.preprocess import Dataset
-    from tfn.helper import export_results
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from sklearn.model_selection import train_test_split
     import argparse
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--params", "-p", dest="params", type=dict, default=None,
+                        help="Parameter dict for the SVM.")
+
     args = parser.parse_args()
 
     data = Dataset('glove')
