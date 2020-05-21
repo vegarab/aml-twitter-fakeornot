@@ -38,7 +38,7 @@ def log_sk_model(model, mean, std, params):
 
     log_df.to_csv(LOG_FILE, index=False)
 
-def log_torch_model(model, acc, params):
+def log_torch_model(model, acc, params, std=None):
     if not os.path.exists(SAVED_MODELS_DIR):
         os.mkdir(SAVED_MODELS_DIR)
     model_name = type(model).__name__
@@ -58,6 +58,8 @@ def log_torch_model(model, acc, params):
         'mean_result': acc,
         **params
     }
+    if std:
+        row_dict['std_result'] = std
 
     for k in row_dict:
         if k not in log_df.columns:

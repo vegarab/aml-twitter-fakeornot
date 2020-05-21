@@ -10,6 +10,7 @@ from tfn.models.model import Model
 from skopt.utils import Real, Integer, Categorical
 from sklearn.metrics import accuracy_score
 
+
 class LSTM(nn.Module):
     def __init__(self, input_size, seq_length, hidden_size, output_size, num_layers, dropout=0.5):
         super(LSTM, self).__init__()
@@ -36,14 +37,15 @@ class LSTMModel(Model):
                  batch_size=50, opt='SGD'):
         super().__init__()
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.seq_length = seq_length
 
         output_dim = 1  # Output dimension
 
         # Model hyperparameters
         self.hidden_dim = hidden_dim  # Size of memory
         self.num_layers = num_layers  # No. of layers
-        self.lr = lr                  # Learning rate
-        self.dropout = dropout        # Dropout
+        self.lr = lr  # Learning rate
+        self.dropout = dropout  # Dropout
         self.opt = opt
         self.momentum = momentum
         self.batch_size = batch_size
@@ -53,12 +55,6 @@ class LSTMModel(Model):
         self.model.double()
         if self.device == "cuda:0":
             self.model.cuda(device=self.device)
-
-
-        self.history = {
-            'train_loss': [],
-            'val_loss': []
-        }
 
     def fit(self, X, y, epochs=5, embedding_type='tfidf', glove=None):
         super(LSTMModel, self).fit(X, y, embedding_type, glove)
@@ -76,6 +72,12 @@ class LSTMModel(Model):
             self.corpus_matrix = self.corpus_matrix.reshape((self.corpus_matrix.shape[0],
                                                              self.corpus_matrix.shape[1],
                                                              1))
+        if self.corpus_matrix.shape[1] != self.seq_length:
+            zeros = np.zeros(
+                shape=(self.corpus_matrix.shape[0], self.seq_length, self.corpus_matrix.shape[2])
+            )
+            zeros[:, :self.corpus_matrix.shape[1], :] = self.corpus_matrix
+            self.corpus_matrix = zeros
         train_data = TensorDataset(torch.tensor(self.corpus_matrix[:train_size], device=self.device),
                                    torch.tensor(y[:train_size], device=self.device)
                                    )
@@ -91,7 +93,7 @@ class LSTMModel(Model):
         prev_training_loss = 999_999
         prev_val_loss = 999_999
 
-        val_losses =  np.ndarray(epochs)
+        val_losses = np.ndarray(epochs)
         val_accs = np.ndarray(epochs)
         train_losses = np.ndarray(epochs)
         train_accs = np.ndarray(epochs)
@@ -106,7 +108,7 @@ class LSTMModel(Model):
                     print("Epoch progress: %s%%" % int(100 * i / len(train_loader)))
                 self.model.zero_grad()
                 y_pred = self.model(X_train)
-                loss = criterion(y_pred, y_train.double())
+                loss = criterion(y_pred.squeeze(1), y_train.double())
                 training_loss += (loss.item() / len(train_data))
                 loss.backward()
                 optimizer.step()
@@ -116,7 +118,7 @@ class LSTMModel(Model):
 
                 train_acc.append(accuracy_score(y_train.cpu().detach().numpy(), y_pred))
 
-            train_accs[epoch] = sum(train_acc)/len(train_acc)
+            train_accs[epoch] = sum(train_acc) / len(train_acc)
 
             for (X_val, y_val) in val_loader:
                 y_pred = self.model(X_val)
@@ -127,7 +129,7 @@ class LSTMModel(Model):
                 y_pred = np.where(y_pred.cpu().detach().numpy() > 0.5, 1, 0)
                 val_acc.append(accuracy_score(y_val.cpu().detach().numpy(), y_pred))
 
-            val_accs[epoch] = sum(val_acc)/len(val_acc)
+            val_accs[epoch] = sum(val_acc) / len(val_acc)
 
             print('Training Loss: %.4g' % training_loss)
             train_losses[epoch] = training_loss
@@ -144,9 +146,8 @@ class LSTMModel(Model):
             else:
                 improvement = 0
 
-
             # if model overfits excessively, stop early
-            if training_loss < (val_loss*0.75):
+            if training_loss < (val_loss * 0.75):
                 break
 
             # if model does not improve and optimiser is sgd, lower the learning rate
@@ -160,29 +161,33 @@ class LSTMModel(Model):
 
         return train_losses, train_accs, val_losses, val_accs
 
-    def predict(self, X, use_val_loader=False):
-        if use_val_loader:
-            test_loader = self.val_loader
-        else:
-            super(LSTMModel, self).predict(X)
-            test_data = TensorDataset(torch.tensor(self.X_transform, device=self.device))
-            test_loader = DataLoader(test_data, batch_size=self.batch_size)
+    def predict(self, X):
+        super(LSTMModel, self).predict(X)
+        if self.X_transform.shape[1] != self.seq_length:
+            zeros = np.zeros(
+                shape=(self.X_transform.shape[0], self.seq_length, self.X_transform.shape[2])
+            )
+            zeros[:, :self.X_transform.shape[1], :] = self.X_transform
+            self.X_transform = zeros
+        test_data = TensorDataset(torch.tensor(self.X_transform, device=self.device))
+        test_loader = DataLoader(test_data, batch_size=self.batch_size)
         self.model.eval()
         predictions_list = []
         actual_list = []
-        for (X_test) in test_loader:
+        for X_test in test_loader:
+            X_test = X_test[0]
             y_pred = self.model(X_test)
             if self.device == "cpu":
                 predictions_list.append(y_pred.data.numpy().reshape(-1))
-                actual_list.append(y_test.data.numpy().reshape(-1))
+                # actual_list.append(y_test.data.numpy().reshape(-1))
             else:
                 predictions_list.append(y_pred.data.cpu().numpy().reshape(-1))
-                actual_list.append(y_test.data.cpu().numpy().reshape(-1))
+                # actual_list.append(y_test.data.cpu().numpy().reshape(-1))
 
         predictions = np.hstack(predictions_list)
-        actuals = np.hstack(actual_list)
+        # actuals = np.hstack(actual_list)
         self.predictions = predictions
-        self.actuals = actuals
+        # self.actuals = actuals
         return predictions
 
     def get_val_accuracy(self):
@@ -194,21 +199,22 @@ class LSTMModel(Model):
 
     @classmethod
     def get_space(cls):
-        return [#Categorical(['glove', 'char', 'tfidf'], name='embedding'),
-                Categorical(['glove', 'char'], name='embedding'),
-                # Categorical(['tfidf'], name='embedding'),
-                Categorical(['SGD', 'Adam'], name='opt'),
-                Categorical([50, 100, 150], name='hidden_dim'),
-                Categorical([1, 2, 3], name='num_layers'),
-                Categorical([1e-4, 1e-3, 1e-2], name='lr'),
-                Categorical([0.5, 0.9, 0.99], name='momentum'),
-                Real(0.1, 0.5, 'uniform', name='dropout')]
+        return [  # Categorical(['glove', 'char', 'tfidf'], name='embedding'),
+            Categorical(['glove', 'char'], name='embedding'),
+            # Categorical(['tfidf'], name='embedding'),
+            Categorical(['SGD', 'Adam'], name='opt'),
+            Categorical([50, 100, 150], name='hidden_dim'),
+            Categorical([1, 2, 3], name='num_layers'),
+            Categorical([1e-4, 1e-3, 1e-2], name='lr'),
+            Categorical([0.5, 0.9, 0.99], name='momentum'),
+            Real(0.1, 0.5, 'uniform', name='dropout')]
 
     def state_dict(self):
         return self.model.state_dict()
 
+
 def visualize_training(hist1, label1, hist2, label2, xlabel, ylabel, filepath):
-    plt.figure(figsize=(8,8))
+    plt.figure(figsize=(8, 8))
     plt.plot(hist1, label=label1)
     plt.plot(hist2, label=label2)
     plt.xlabel(xlabel)
@@ -217,6 +223,7 @@ def visualize_training(hist1, label1, hist2, label2, xlabel, ylabel, filepath):
     plt.legend()
     plt.savefig(filepath)
     plt.show()
+
 
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
@@ -249,13 +256,6 @@ if __name__ == "__main__":
     else:
         emb_size = 100
 
-    # Get data GLoVe
-    # data = Dataset(args.type)
-    # emb = GloveEmbedding(data.X, emb_size=emb_size, type=args.type)
-    # X = emb.corpus_vectors
-    # y = np.array(data.y)
-
-    # Get data char emb
     data = Dataset(embedding_type)
     if embedding_type == "glove":
         emb = GloveEmbedding(data.X, emb_size=emb_size)
@@ -285,5 +285,3 @@ if __name__ == "__main__":
     print('GLoVe + LSTM accuracy:', round(acc, 4))
     print('GLoVe + LSTM AUC:', round(roc, 4))
     print('GLoVe + LSTM F1:', round(f1, 4))
-
-

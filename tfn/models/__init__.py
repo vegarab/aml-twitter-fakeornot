@@ -6,3 +6,4 @@ from tfn.models.naive_bayes import Naive_Bayes
 from tfn.models.random_forest import RandomForest
 from tfn.models.svm import SVM
 from tfn.models.grad_boost import GradientBoost
+from tfn.models.cnn import CNNModel

@@ -6,7 +6,7 @@ from tfn import OPT_RESULTS, CHAR_TRAINING_FILE, CHAR_MODEL
 from tfn.feature_extraction import embedding
 from tfn.logger import log_sk_model, log_torch_model
 from tfn.preprocess import Dataset
-from tfn.models import CosineSimilarity, Dummy, KNN, LSTMModel, Naive_Bayes, RandomForest, SVM, GradientBoost
+from tfn.models import CosineSimilarity, Dummy, KNN, LSTMModel, Naive_Bayes, RandomForest, SVM, GradientBoost, CNNModel
 
 import numpy as np
 from numpy.random import permutation
@@ -80,9 +80,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     models = {
+        'CNN': CNNModel,
         # 'RandomForest': RandomForest,
         # 'LSTM': LSTMModel,
-        'SVM': SVM,
+        # 'SVM': SVM,
         # 'kNN': KNN,
         # 'NaiveBayes': Naive_Bayes,
         # 'GradientBoost': GradientBoost,
