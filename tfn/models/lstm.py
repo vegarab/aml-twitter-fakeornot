@@ -249,6 +249,7 @@ if __name__ == "__main__":
     parser.add_argument("--lr", dest="lr", default=1e-3, type=float)
     parser.add_argument("--momentum", dest="momentum", default=0.5, type=float)
     parser.add_argument("--dropout", dest="dropout", default=0.5, type=float)
+    parser.add_argument("--cv", dest="cv", action="store_true")
     parser.add_argument("--no-early-stop", dest="early_stopping", action="store_false")
 
     args = parser.parse_args()
