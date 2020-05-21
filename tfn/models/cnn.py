@@ -45,17 +45,17 @@ class CNN(nn.Module):
 
 
 class CNNModel(Model):
-    def __init__(self, embedding_dim, max_len, n_filters=100, filter_sizes=(3,4,5), output_dim=1, dropout=0.5,
+    def __init__(self, num_features, seq_length, n_filters=100, filter_sizes=(3,4,5), output_dim=1, dropout=0.5,
                  batch_size=50, lr=0.01, momentum=0.2, opt="SGD"):
         super().__init__()
         
-        self.model = CNN(embedding_dim, n_filters, filter_sizes, output_dim, dropout)
+        self.model = CNN(num_features, n_filters, filter_sizes, output_dim, dropout)
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-        self.max_len = max_len
+        self.max_len = seq_length
 
         # Model hyperparameters
-        self.embedding_dim = embedding_dim
+        self.embedding_dim = num_features
         self.n_filters = n_filters
         self.lr = lr  # Learning rate
         self.dropout = dropout  # Dropout

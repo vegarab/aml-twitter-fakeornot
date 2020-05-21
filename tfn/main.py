@@ -110,7 +110,7 @@ if __name__ == "__main__":
         model = models[model_type]
         space = models[model_type].get_space()
 
-        if model_type == 'LSTM':
+        if model_type in ['LSTM', 'CNN']:
             @use_named_args(space)
             def objective(**params):
                 print(params)
