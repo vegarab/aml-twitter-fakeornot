@@ -230,7 +230,7 @@ if __name__ == '__main__':
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     from argparse import ArgumentParser
-    from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
+    from tfn.data_augmentation.augmentation import augment
 
 
     parser = ArgumentParser()
@@ -297,7 +297,7 @@ if __name__ == '__main__':
     else:
         kf = KFold(n_splits=5)
         cv = []
-        aug = AugmentWithEmbeddings(emb_size=emb_size)
+
         X_train, X_test, y_train, y_test = train_test_split(X, data.y, shuffle=True)
         for ix, (train_index, test_index) in enumerate(kf.split(X_train)):
             print('Fold %d' % ix)
@@ -306,6 +306,7 @@ if __name__ == '__main__':
             if args.augment:
                 indices = [idx for (idx, xx) in X_t]
                 X_t, y_t = augment(indices)
+                X_t = Dataset()._tokenize_glove(X_t)
             cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
             cnn.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)
