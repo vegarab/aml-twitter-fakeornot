@@ -234,7 +234,7 @@ if __name__ == "__main__":
     from sklearn.model_selection import train_test_split, KFold
     from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
     import numpy as np
-    from tfn.data_augmentation.augmentation import AugmentWithEmbeddings
+    from tfn.data_augmentation.augmentation import AugmentWithEmbeddings, augment
     from argparse import ArgumentParser
 
     parser = ArgumentParser()
@@ -272,16 +272,19 @@ if __name__ == "__main__":
         emb_size = 100
 
     data = Dataset(embedding_type)
+
     if embedding_type == "glove":
         emb = GloveEmbedding(data.X, emb_size=emb_size)
     else:
         emb = None
 
-    X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
+
     max_len = len(max(data.X, key=len))
+    X = list(enumerate(data.X))
 
     lstm = LSTMModel(num_features=emb_size, seq_length=max_len, **params)
     if not args.cv:
+        X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
         train_losses, train_accs, val_losses, val_accs = lstm.fit(X_train, y_train, epochs=args.epochs,
                                                                  embedding_type=embedding_type, glove=emb)
         visualize_training(train_losses, 'Training loss',
@@ -303,14 +306,15 @@ if __name__ == "__main__":
     else:
         kf = KFold(n_splits=5)
         cv = []
-        aug = AugmentWithEmbeddings(emb_size=emb_size)
+
+        X_train, X_test, y_train, y_test = train_test_split(X, data.y, shuffle=True)
         for ix, (train_index, test_index) in enumerate(kf.split(X_train)):
             print('Fold %d' % ix)
             X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
             X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
-
             if args.augment:
-                X_t, y_t = aug.augment(X_t, y_t)
+                indices = [idx for (idx, xx) in X_t]
+                X_t, y_t = augment(indices)
             lstm = LSTMModel(num_features=emb_size, seq_length=max_len, **params)
             lstm.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)

@@ -263,6 +263,7 @@ if __name__ == '__main__':
 
     embedding_type = args.embedding
     data = Dataset(embedding_type)
+    X = list(enumerate(data.X))
     if embedding_type == "glove":
         emb_size = args.emb_size
         emb = GloveEmbedding(data.X, emb_size=emb_size)
@@ -270,10 +271,11 @@ if __name__ == '__main__':
         emb_size = 100
         emb = None
 
-    X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
+
     max_len = len(max(data.X, key=len))
     cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
     if not args.cv:
+        X_train, X_test, y_train, y_test = train_test_split(data.X, data.y, shuffle=True)
         train_losses, train_accs, val_losses, val_accs = cnn.fit(X_train, y_train, epochs=args.epochs,
                                                                   embedding_type=embedding_type, glove=emb)
         visualize_training(train_losses, 'Training loss',
@@ -296,12 +298,14 @@ if __name__ == '__main__':
         kf = KFold(n_splits=5)
         cv = []
         aug = AugmentWithEmbeddings(emb_size=emb_size)
+        X_train, X_test, y_train, y_test = train_test_split(X, data.y, shuffle=True)
         for ix, (train_index, test_index) in enumerate(kf.split(X_train)):
             print('Fold %d' % ix)
             X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
             X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
             if args.augment:
-                X_t = aug.augment(X_t)
+                indices = [idx for (idx, xx) in X_t]
+                X_t, y_t = augment(indices)
             cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
             cnn.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)
