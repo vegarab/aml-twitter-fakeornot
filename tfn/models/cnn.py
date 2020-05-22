@@ -303,6 +303,7 @@ if __name__ == '__main__':
             print('Fold %d' % ix)
             X_t, y_t = list(map(lambda i: X_train[i], train_index)), list(map(lambda i: y_train[i], train_index))
             X_t_t, y_t_t = list(map(lambda i: X_train[i], test_index)), list(map(lambda i: y_train[i], test_index))
+
             if args.augment:
                 indices = [idx for (idx, xx) in X_t]
                 X_t, y_t = augment(indices)
@@ -312,7 +313,9 @@ if __name__ == '__main__':
             cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
             cnn.fit(X_t, y_t, epochs=args.epochs,
                     embedding_type=embedding_type, glove=emb)
-            y_pred = cnn.predict(X_t_t)
+            x_val = [x[1] for x in X_t_t]
+
+            y_pred = cnn.predict(x_val)
 
             acc = accuracy_score(y_t_t, y_pred)
             roc = roc_auc_score(y_t_t, y_pred)
