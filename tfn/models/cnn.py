@@ -307,7 +307,7 @@ if __name__ == '__main__':
                 indices = [idx for (idx, xx) in X_t]
                 X_t, y_t = augment(indices)
                 X_t = [" ".join(x) for x in X_t]
-                max_len = len(max(X_t, map=len))
+                max_len = len(max(X_t, key=len))
                 X_t = Dataset('glove')._tokenize_glove(X_t)
             cnn = CNNModel(num_features=emb_size, seq_length=max_len, **params)
             cnn.fit(X_t, y_t, epochs=args.epochs,
