@@ -79,5 +79,5 @@ def augment(indices):
 if __name__ == "__main__":
     from tfn.preprocess import Dataset
     data = Dataset('glove')
-    AugmentWithEmbeddings(25, data.corpus, data.y)
-
+    AugmentWithEmbeddings(emb_size=25, X=data.X, y=data.y, replace_pr=0.25, num_copies=4)
+    # aug = augment([1,2,3])
